@@ -329,6 +329,7 @@ function render() {
     console.error(error);
     root.innerHTML = `<p class="empty">${escapeHtml(error.message)}</p>`;
   }
+  root.dataset.rendered = "1";
   applyTheme();
 }
 
