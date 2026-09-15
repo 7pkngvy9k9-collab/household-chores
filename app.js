@@ -58,6 +58,7 @@ let state = {
   boot: true,
   user: null,
   email: "",
+  password: "",
   authMessage: "",
   authError: "",
   householdId: "",
@@ -90,6 +91,12 @@ function closeChoreComposer() {
 function setBusy(busy, error = "") {
   state.busy = busy;
   state.error = error;
+  render();
+}
+
+function setAuthBusy(busy, authError = "") {
+  state.busy = busy;
+  state.authError = authError;
   render();
 }
 
@@ -337,19 +344,26 @@ function authView() {
   return `
     <section class="setup card">
       <h1>Household chores</h1>
-      <p class="sub">Sign in with email to keep your household list permanent across devices.</p>
+      <p class="sub">Sign in to keep your household list permanent across devices.</p>
       ${state.authError ? `<p class="error">${escapeHtml(state.authError)}</p>` : ""}
       ${state.authMessage ? `<p class="ok-msg">${escapeHtml(state.authMessage)}</p>` : ""}
       <form id="auth-form" class="grid">
         <label class="field">
           <span>Email</span>
-          <input name="email" type="email" required placeholder="you@example.com" value="${escapeHtml(state.email)}" />
+          <input name="email" type="email" required autocomplete="email" placeholder="you@example.com" value="${escapeHtml(state.email)}" />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input name="password" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters" value="${escapeHtml(state.password)}" />
         </label>
         <button class="primary" type="submit" ${state.busy ? "disabled" : ""}>
-          ${state.busy ? "Sending…" : "Send magic link"}
+          ${state.busy ? "Working…" : "Sign in"}
+        </button>
+        <button class="ghost" id="sign-up" type="button" ${state.busy ? "disabled" : ""}>
+          Create account
         </button>
       </form>
-      <p class="sub">After you click the link in your email, come back here — you’ll stay signed in.</p>
+      <p class="sub">New here? Enter an email and password, then choose Create account.</p>
       <div class="theme-slot">${themeToggleButton()}</div>
     </section>
   `;
@@ -578,25 +592,52 @@ function choreCard(chore) {
 }
 
 function bindAuth() {
-  document.getElementById("auth-form")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = String(new FormData(e.target).get("email")).trim();
+  const form = document.getElementById("auth-form");
+  if (!form) return;
+
+  async function authenticate(mode) {
+    const data = new FormData(form);
+    const email = String(data.get("email") || "").trim();
+    const password = String(data.get("password") || "");
     state.email = email;
+    state.password = password;
     state.busy = true;
     state.authError = "";
     state.authMessage = "";
     render();
-    const { error } = await db.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: siteUrl },
-    });
-    state.busy = false;
+
+    const { data: result, error } =
+      mode === "signup"
+        ? await db.auth.signUp({ email, password, options: { emailRedirectTo: siteUrl } })
+        : await db.auth.signInWithPassword({ email, password });
+
     if (error) {
-      state.authError = error.message;
-    } else {
-      state.authMessage = "Check your email for the magic link, then return to this page.";
+      setAuthBusy(false, error.message);
+      return;
     }
-    render();
+
+    if (!result.session) {
+      state.authMessage = "Account created. Confirm it from the email we sent, then sign in.";
+      setAuthBusy(false);
+      return;
+    }
+
+    state.password = "";
+    try {
+      await loadHouseholdForUser();
+      setAuthBusy(false);
+    } catch (loadError) {
+      setAuthBusy(false, loadError.message);
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    authenticate("signin");
+  });
+
+  document.getElementById("sign-up")?.addEventListener("click", () => {
+    if (form.reportValidity()) authenticate("signup");
   });
 }
 
@@ -675,6 +716,7 @@ function bindOnboarding() {
     await db.auth.signOut();
     state.user = null;
     state.householdId = "";
+    state.password = "";
     render();
   });
 }
@@ -684,6 +726,7 @@ function bindApp() {
     await db.auth.signOut();
     state.user = null;
     state.householdId = "";
+    state.password = "";
     render();
   });
 
