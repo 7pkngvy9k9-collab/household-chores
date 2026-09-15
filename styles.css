@@ -302,6 +302,28 @@ html.theme-dark .chip.active {
   padding: 8px 2px 18px;
 }
 
+.error {
+  color: var(--clay);
+  background: var(--clay-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+
+.ok-msg {
+  color: var(--sage-deep);
+  background: var(--sage-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 22px 0;
+}
+
 .composer-dock {
   position: fixed;
   left: 0;

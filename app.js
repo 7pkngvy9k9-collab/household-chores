@@ -1,6 +1,13 @@
-const STORAGE_KEY = "household-chores.v1";
+const THEME_KEY = "household-chores.theme";
+const { supabaseUrl, supabaseAnonKey, siteUrl } = window.APP_CONFIG;
 
-const uid = () => crypto.randomUUID();
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
 const toISODate = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -13,31 +20,61 @@ function addDays(iso, days) {
   return toISODate(d);
 }
 
-function defaultState() {
+function mapChore(row) {
   return {
-    householdName: "",
-    members: [],
-    currentMemberId: "",
-    chores: [],
-    notifyAsked: false,
-    darkMode: false,
+    id: row.id,
+    title: row.title,
+    kind: row.kind,
+    repeat: row.repeat,
+    dueDate: row.due_date,
+    rotate: row.rotate,
+    holderIds: row.holder_ids || [],
+    holderIndex: row.holder_index || 0,
+    done: row.done,
+    lastDoneAt: row.last_done_at,
+    lastDoneBy: row.last_done_by,
   };
 }
 
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultState(), ...JSON.parse(raw) } : defaultState();
-  } catch {
-    return defaultState();
-  }
+function choreToRow(chore, householdId) {
+  return {
+    id: chore.id,
+    household_id: householdId,
+    title: chore.title,
+    kind: chore.kind,
+    repeat: chore.repeat,
+    due_date: chore.dueDate,
+    rotate: chore.rotate,
+    holder_ids: chore.holderIds,
+    holder_index: chore.holderIndex,
+    done: chore.done,
+    last_done_at: chore.lastDoneAt,
+    last_done_by: chore.lastDoneBy,
+    updated_at: new Date().toISOString(),
+  };
 }
 
-function save(state) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+let state = {
+  boot: true,
+  user: null,
+  email: "",
+  authMessage: "",
+  authError: "",
+  householdId: "",
+  householdName: "",
+  inviteCode: "",
+  members: [],
+  currentMemberId: "",
+  chores: [],
+  joinCode: "",
+  joinMembers: [],
+  joinHouseholdName: "",
+  notifyAsked: false,
+  darkMode: localStorage.getItem(THEME_KEY) === "1",
+  busy: false,
+  error: "",
+};
 
-let state = load();
 let composerOpen = false;
 
 function openChoreComposer() {
@@ -48,6 +85,37 @@ function openChoreComposer() {
 function closeChoreComposer() {
   composerOpen = false;
   render();
+}
+
+function setBusy(busy, error = "") {
+  state.busy = busy;
+  state.error = error;
+  render();
+}
+
+function applyTheme() {
+  document.documentElement.classList.toggle("theme-dark", Boolean(state.darkMode));
+}
+
+function toggleDarkMode() {
+  state.darkMode = !state.darkMode;
+  localStorage.setItem(THEME_KEY, state.darkMode ? "1" : "0");
+  applyTheme();
+  render();
+}
+
+function themeToggleButton() {
+  return `<button class="ghost" id="toggle-theme" type="button">${
+    state.darkMode ? "Light mode" : "Dark mode"
+  }</button>`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function currentMember() {
@@ -86,65 +154,6 @@ function scheduleLabel(chore) {
   return `On ${chore.dueDate}`;
 }
 
-function completeChore(id) {
-  state.chores = state.chores.map((chore) => {
-    if (chore.id !== id) return chore;
-    const doneBy = state.currentMemberId;
-    if (chore.kind === "repeating") {
-      const nextIndex = chore.rotate ? chore.holderIndex + 1 : chore.holderIndex;
-      const days = chore.repeat === "daily" ? 1 : 7;
-      return {
-        ...chore,
-        holderIndex: nextIndex,
-        dueDate: addDays(todayISO(), days),
-        lastDoneAt: new Date().toISOString(),
-        lastDoneBy: doneBy,
-        done: false,
-      };
-    }
-    return {
-      ...chore,
-      done: true,
-      lastDoneAt: new Date().toISOString(),
-      lastDoneBy: doneBy,
-    };
-  });
-  persist();
-}
-
-function reopenChore(id) {
-  state.chores = state.chores.map((chore) =>
-    chore.id === id ? { ...chore, done: false } : chore
-  );
-  persist();
-}
-
-function removeChore(id) {
-  state.chores = state.chores.filter((chore) => chore.id !== id);
-  persist();
-}
-
-function persist() {
-  save(state);
-  applyTheme();
-  render();
-}
-
-function applyTheme() {
-  document.documentElement.classList.toggle("theme-dark", Boolean(state.darkMode));
-}
-
-function toggleDarkMode() {
-  state.darkMode = !state.darkMode;
-  persist();
-}
-
-function themeToggleButton() {
-  return `<button class="ghost" id="toggle-theme" type="button">${
-    state.darkMode ? "Light mode" : "Dark mode"
-  }</button>`;
-}
-
 function waitingForMe(chore) {
   if (!isMine(chore) || chore.done) return false;
   if (chore.kind === "on_demand") return true;
@@ -162,10 +171,7 @@ async function enableNotifications() {
   }
   const permission = await Notification.requestPermission();
   state.notifyAsked = true;
-  save(state);
-  if (permission === "granted") {
-    pingDueNotification();
-  }
+  if (permission === "granted") pingDueNotification();
   render();
 }
 
@@ -179,15 +185,142 @@ function pingDueNotification() {
   });
 }
 
+async function loadHouseholdForUser() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  state.user = user;
+  if (!user) {
+    state.householdId = "";
+    state.members = [];
+    state.chores = [];
+    state.currentMemberId = "";
+    return;
+  }
+
+  const { data: member, error: memberError } = await supabase
+    .from("members")
+    .select("id, household_id, name, households(id, name, invite_code)")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (memberError) throw memberError;
+  if (!member) {
+    state.householdId = "";
+    state.members = [];
+    state.chores = [];
+    state.currentMemberId = "";
+    return;
+  }
+
+  state.currentMemberId = member.id;
+  state.householdId = member.household_id;
+  state.householdName = member.households.name;
+  state.inviteCode = member.households.invite_code;
+
+  const [{ data: members, error: membersError }, { data: chores, error: choresError }] =
+    await Promise.all([
+      supabase
+        .from("members")
+        .select("id, name")
+        .eq("household_id", state.householdId)
+        .order("created_at"),
+      supabase
+        .from("chores")
+        .select("*")
+        .eq("household_id", state.householdId)
+        .order("created_at", { ascending: false }),
+    ]);
+
+  if (membersError) throw membersError;
+  if (choresError) throw choresError;
+
+  state.members = members || [];
+  state.chores = (chores || []).map(mapChore);
+}
+
+async function completeChore(id) {
+  const chore = state.chores.find((c) => c.id === id);
+  if (!chore) return;
+  const doneBy = state.currentMemberId;
+  let next;
+  if (chore.kind === "repeating") {
+    next = {
+      ...chore,
+      holderIndex: chore.rotate ? chore.holderIndex + 1 : chore.holderIndex,
+      dueDate: addDays(todayISO(), chore.repeat === "daily" ? 1 : 7),
+      lastDoneAt: new Date().toISOString(),
+      lastDoneBy: doneBy,
+      done: false,
+    };
+  } else {
+    next = {
+      ...chore,
+      done: true,
+      lastDoneAt: new Date().toISOString(),
+      lastDoneBy: doneBy,
+    };
+  }
+  const { error } = await supabase
+    .from("chores")
+    .update(choreToRow(next, state.householdId))
+    .eq("id", id);
+  if (error) {
+    setBusy(false, error.message);
+    return;
+  }
+  state.chores = state.chores.map((c) => (c.id === id ? next : c));
+  render();
+}
+
+async function reopenChore(id) {
+  const { error } = await supabase.from("chores").update({ done: false }).eq("id", id);
+  if (error) {
+    setBusy(false, error.message);
+    return;
+  }
+  state.chores = state.chores.map((c) => (c.id === id ? { ...c, done: false } : c));
+  render();
+}
+
+async function removeChore(id) {
+  const { error } = await supabase.from("chores").delete().eq("id", id);
+  if (error) {
+    setBusy(false, error.message);
+    return;
+  }
+  state.chores = state.chores.filter((c) => c.id !== id);
+  render();
+}
+
+async function addChore(payload) {
+  const row = {
+    household_id: state.householdId,
+    title: payload.title,
+    kind: payload.kind,
+    repeat: payload.repeat,
+    due_date: payload.dueDate,
+    rotate: payload.rotate,
+    holder_ids: payload.holderIds,
+    holder_index: 0,
+    done: false,
+  };
+  const { data, error } = await supabase.from("chores").insert(row).select("*").single();
+  if (error) throw error;
+  state.chores.unshift(mapChore(data));
+}
+
 function render() {
   const root = document.getElementById("app");
   try {
-    if (!state.members.length) {
-      root.innerHTML = setupView();
-      bindSetup();
-    } else if (!state.currentMemberId) {
-      root.innerHTML = loginView();
-      bindLogin();
+    if (state.boot) {
+      root.innerHTML = `<p class="empty">Loading…</p>`;
+    } else if (!state.user) {
+      root.innerHTML = authView();
+      bindAuth();
+    } else if (!state.householdId) {
+      root.innerHTML = onboardingView();
+      bindOnboarding();
     } else {
       root.innerHTML = appView();
       bindApp();
@@ -199,12 +332,37 @@ function render() {
   applyTheme();
 }
 
-function setupView() {
+function authView() {
+  return `
+    <section class="setup card">
+      <h1>Household chores</h1>
+      <p class="sub">Sign in with email to keep your household list permanent across devices.</p>
+      ${state.authError ? `<p class="error">${escapeHtml(state.authError)}</p>` : ""}
+      ${state.authMessage ? `<p class="ok-msg">${escapeHtml(state.authMessage)}</p>` : ""}
+      <form id="auth-form" class="grid">
+        <label class="field">
+          <span>Email</span>
+          <input name="email" type="email" required placeholder="you@example.com" value="${escapeHtml(state.email)}" />
+        </label>
+        <button class="primary" type="submit" ${state.busy ? "disabled" : ""}>
+          ${state.busy ? "Sending…" : "Send magic link"}
+        </button>
+      </form>
+      <p class="sub">After you click the link in your email, come back here — you’ll stay signed in.</p>
+      <div class="theme-slot">${themeToggleButton()}</div>
+    </section>
+  `;
+}
+
+function onboardingView() {
   return `
     <section class="setup card">
       <h1>Set up your household</h1>
-      <p class="sub">Add the people who share chores. Each person later “logs in” by picking their name.</p>
+      <p class="sub">Signed in as ${escapeHtml(state.user.email || "you")}. Create a household or join with an invite code.</p>
+      ${state.error ? `<p class="error">${escapeHtml(state.error)}</p>` : ""}
+
       <form id="setup-form" class="grid">
+        <h2 class="section-title" style="margin:0">Create</h2>
         <label class="field">
           <span>Household name</span>
           <input name="household" required placeholder="Our place" />
@@ -212,33 +370,47 @@ function setupView() {
         <div>
           <span class="sub">People in the household</span>
           <div id="member-fields">
-            <div class="member-row"><input name="member" required placeholder="Name" /></div>
+            <div class="member-row"><input name="member" required placeholder="Your name" /></div>
             <div class="member-row"><input name="member" required placeholder="Name" /></div>
           </div>
           <button type="button" class="ghost" id="add-member-field">Add another person</button>
         </div>
-        <button class="primary" type="submit">Create household</button>
+        <button class="primary" type="submit" ${state.busy ? "disabled" : ""}>Create household</button>
       </form>
-      <div class="theme-slot">${themeToggleButton()}</div>
-    </section>
-  `;
-}
 
-function loginView() {
-  const options = state.members
-    .map((m) => `<option value="${m.id}">${escapeHtml(m.name)}</option>`)
-    .join("");
-  return `
-    <section class="setup card">
-      <h1>${escapeHtml(state.householdName)}</h1>
-      <p class="sub">Who’s using the list right now?</p>
-      <form id="login-form" class="grid">
+      <hr class="divider" />
+
+      <form id="join-lookup-form" class="grid">
+        <h2 class="section-title" style="margin:0">Join</h2>
         <label class="field">
-          <span>Your name</span>
-          <select name="member">${options}</select>
+          <span>Invite code</span>
+          <input name="code" required placeholder="AB12CD34" value="${escapeHtml(state.joinCode)}" />
         </label>
-        <button class="primary" type="submit">Continue</button>
+        <button class="ghost" type="submit" ${state.busy ? "disabled" : ""}>Look up household</button>
       </form>
+
+      ${
+        state.joinMembers.length
+          ? `
+        <form id="join-claim-form" class="grid">
+          <p class="sub">Join <strong>${escapeHtml(state.joinHouseholdName)}</strong> as:</p>
+          <label class="field">
+            <span>Your seat</span>
+            <select name="member" required>
+              ${state.joinMembers
+                .map(
+                  (m) =>
+                    `<option value="${m.id}" ${m.claimed ? "disabled" : ""}>${escapeHtml(m.name)}${m.claimed ? " (taken)" : ""}</option>`
+                )
+                .join("")}
+            </select>
+          </label>
+          <button class="primary" type="submit" ${state.busy ? "disabled" : ""}>Join household</button>
+        </form>`
+          : ""
+      }
+
+      <button class="ghost" id="sign-out" type="button">Sign out</button>
       <div class="theme-slot">${themeToggleButton()}</div>
     </section>
   `;
@@ -259,22 +431,16 @@ function appView() {
     <header class="topbar">
       <div>
         <h1 class="brand">${escapeHtml(state.householdName)}</h1>
-        <p class="sub">One list. Repeating, dated, or on demand — with rotating owners.</p>
+        <p class="sub">Invite code: <strong>${escapeHtml(state.inviteCode)}</strong> · signed in as ${escapeHtml(currentMember()?.name || "")}</p>
       </div>
       <div class="who">
-        <label for="switch-user">Signed in as</label>
-        <select id="switch-user">
-          ${state.members
-            .map(
-              (m) =>
-                `<option value="${m.id}" ${m.id === state.currentMemberId ? "selected" : ""}>${escapeHtml(m.name)}</option>`
-            )
-            .join("")}
-        </select>
-        <button class="ghost" id="sign-out" type="button">Switch person</button>
+        <button class="ghost" id="refresh-data" type="button">Refresh</button>
+        <button class="ghost" id="sign-out" type="button">Sign out</button>
         ${themeToggleButton()}
       </div>
     </header>
+
+    ${state.error ? `<p class="error">${escapeHtml(state.error)}</p>` : ""}
 
     <div class="banner ${myDue.length ? "" : "ok"}">
       <span>${
@@ -295,7 +461,7 @@ function appView() {
     </div>
 
     ${listSection("Due now", due, "Nothing due.")}
-    ${listSection("On demand", onDemand.filter((c) => !due.includes(c)), "No open on-demand chores.")}
+    ${listSection("On demand", onDemand, "No open on-demand chores.")}
     ${listSection("Upcoming", upcoming, "No upcoming chores.")}
     ${done.length ? listSection("Done", done, "") : ""}
 
@@ -375,21 +541,16 @@ function composerSheet() {
 function listSection(title, chores, empty) {
   return `
     <h2 class="section-title">${title}</h2>
-    ${
-      chores.length
-        ? chores.map(choreCard).join("")
-        : `<p class="empty">${empty}</p>`
-    }
+    ${chores.length ? chores.map(choreCard).join("") : `<p class="empty">${empty}</p>`}
   `;
 }
 
 function choreCard(chore) {
   const holderId = currentHolder(chore);
   const mine = isMine(chore);
-  const overdue = chore.kind !== "on_demand" && chore.dueDate && chore.dueDate < todayISO() && !chore.done;
-  const last = chore.lastDoneBy
-    ? `Last: ${escapeHtml(memberName(chore.lastDoneBy))}`
-    : "";
+  const overdue =
+    chore.kind !== "on_demand" && chore.dueDate && chore.dueDate < todayISO() && !chore.done;
+  const last = chore.lastDoneBy ? `Last: ${escapeHtml(memberName(chore.lastDoneBy))}` : "";
 
   return `
     <article class="card chore ${chore.done ? "is-done" : ""}">
@@ -415,65 +576,134 @@ function choreCard(chore) {
   `;
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+function bindAuth() {
+  document.getElementById("auth-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = String(new FormData(e.target).get("email")).trim();
+    state.email = email;
+    state.busy = true;
+    state.authError = "";
+    state.authMessage = "";
+    render();
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: siteUrl },
+    });
+    state.busy = false;
+    if (error) {
+      state.authError = error.message;
+    } else {
+      state.authMessage = "Check your email for the magic link, then return to this page.";
+    }
+    render();
+  });
 }
 
-function bindSetup() {
-  document.getElementById("add-member-field").addEventListener("click", () => {
+function bindOnboarding() {
+  document.getElementById("add-member-field")?.addEventListener("click", () => {
     const wrap = document.getElementById("member-fields");
     const row = document.createElement("div");
     row.className = "member-row";
     row.innerHTML = `<input name="member" placeholder="Name" />`;
     wrap.appendChild(row);
   });
-  document.getElementById("setup-form").addEventListener("submit", (e) => {
+
+  document.getElementById("setup-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = new FormData(e.target);
     const names = data
       .getAll("member")
       .map((n) => String(n).trim())
       .filter(Boolean);
-    if (names.length < 2) {
-      alert("Add at least two people so rotation can be tested.");
+    setBusy(true);
+    const { data: created, error } = await supabase.rpc("create_household", {
+      p_name: String(data.get("household")).trim(),
+      p_member_names: names,
+    });
+    if (error) {
+      setBusy(false, error.message);
       return;
     }
-    state.householdName = String(data.get("household")).trim();
-    state.members = names.map((name) => ({ id: uid(), name }));
-    persist();
+    const row = Array.isArray(created) ? created[0] : created;
+    state.inviteCode = row.invite_code;
+    await loadHouseholdForUser();
+    setBusy(false);
   });
-}
 
-function bindLogin() {
-  document.getElementById("login-form").addEventListener("submit", (e) => {
+  document.getElementById("join-lookup-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    state.currentMemberId = new FormData(e.target).get("member");
-    persist();
-    pingDueNotification();
+    const code = String(new FormData(e.target).get("code")).trim();
+    state.joinCode = code;
+    setBusy(true);
+    const [{ data: house, error: houseError }, { data: members, error: membersError }] =
+      await Promise.all([
+        supabase.rpc("lookup_household_by_invite", { p_code: code }),
+        supabase.rpc("list_members_by_invite", { p_code: code }),
+      ]);
+    if (houseError || membersError) {
+      setBusy(false, (houseError || membersError).message);
+      return;
+    }
+    const household = Array.isArray(house) ? house[0] : house;
+    if (!household) {
+      setBusy(false, "No household found for that invite code.");
+      return;
+    }
+    state.joinHouseholdName = household.name;
+    state.joinMembers = members || [];
+    setBusy(false);
+  });
+
+  document.getElementById("join-claim-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const memberId = String(new FormData(e.target).get("member"));
+    setBusy(true);
+    const { error } = await supabase.rpc("join_household", {
+      p_code: state.joinCode,
+      p_member_id: memberId,
+    });
+    if (error) {
+      setBusy(false, error.message);
+      return;
+    }
+    await loadHouseholdForUser();
+    setBusy(false);
+  });
+
+  document.getElementById("sign-out")?.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    state.user = null;
+    state.householdId = "";
+    render();
   });
 }
 
 function bindApp() {
-  document.getElementById("switch-user").addEventListener("change", (e) => {
-    state.currentMemberId = e.target.value;
-    persist();
+  document.getElementById("sign-out")?.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    state.user = null;
+    state.householdId = "";
+    render();
   });
-  document.getElementById("sign-out").addEventListener("click", () => {
-    state.currentMemberId = "";
-    persist();
+
+  document.getElementById("refresh-data")?.addEventListener("click", async () => {
+    setBusy(true);
+    try {
+      await loadHouseholdForUser();
+      setBusy(false);
+    } catch (error) {
+      setBusy(false, error.message);
+    }
   });
+
   document.querySelectorAll("[data-filter]").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.body.dataset.filter = btn.dataset.filter;
       render();
     });
   });
-  const notifyBtn = document.getElementById("enable-notify");
-  if (notifyBtn) notifyBtn.addEventListener("click", enableNotifications);
+
+  document.getElementById("enable-notify")?.addEventListener("click", enableNotifications);
 
   const kind = document.getElementById("kind");
   if (kind) {
@@ -488,30 +718,26 @@ function bindApp() {
     document.getElementById("chore-title")?.focus();
   }
 
-  const choreForm = document.getElementById("chore-form");
-  if (choreForm) {
-    choreForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const data = new FormData(e.target);
-      const holderIds = data.getAll("holders");
-      const kindValue = String(data.get("kind"));
-      state.chores.unshift({
-        id: uid(),
+  document.getElementById("chore-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
+    const holderIds = data.getAll("holders");
+    const kindValue = String(data.get("kind"));
+    try {
+      await addChore({
         title: String(data.get("title")).trim(),
         kind: kindValue,
         repeat: kindValue === "repeating" ? String(data.get("repeat")) : "none",
         dueDate: kindValue === "on_demand" ? null : String(data.get("dueDate") || todayISO()),
         rotate: kindValue === "repeating" && data.get("rotate") === "on" && holderIds.length > 1,
         holderIds,
-        holderIndex: 0,
-        done: false,
-        lastDoneAt: null,
-        lastDoneBy: null,
       });
       composerOpen = false;
-      persist();
-    });
-  }
+      render();
+    } catch (error) {
+      setBusy(false, error.message);
+    }
+  });
 
   document.querySelectorAll("[data-toggle-done]").forEach((input) => {
     input.addEventListener("change", () => {
@@ -519,6 +745,7 @@ function bindApp() {
       else reopenChore(input.dataset.toggleDone);
     });
   });
+
   document.querySelectorAll("[data-delete]").forEach((input) => {
     input.addEventListener("change", () => {
       if (!input.checked) return;
@@ -528,11 +755,32 @@ function bindApp() {
   });
 }
 
-render();
-
 document.addEventListener("click", (event) => {
   const node = event.target instanceof Element ? event.target : event.target.parentElement;
   if (!node?.closest("#toggle-theme")) return;
   event.preventDefault();
   toggleDarkMode();
 });
+
+supabase.auth.onAuthStateChange(async () => {
+  try {
+    await loadHouseholdForUser();
+    state.boot = false;
+    render();
+    if (state.householdId) pingDueNotification();
+  } catch (error) {
+    state.boot = false;
+    state.error = error.message;
+    render();
+  }
+});
+
+(async function boot() {
+  try {
+    await loadHouseholdForUser();
+  } catch (error) {
+    state.error = error.message;
+  }
+  state.boot = false;
+  render();
+})();

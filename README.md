@@ -1,23 +1,30 @@
 # Household chores
 
-A tiny prototype of a shared household chore list.
+A shared household chore list with permanent cloud storage (Supabase) and GitHub Pages hosting.
 
 **Live:** https://7pkngvy9k9-collab.github.io/household-chores/
 
-## What this tests
+## How it works
 
-Households will keep a single list if repeating chores come back automatically, ownership can rotate, and dated / on-demand tasks live next to them — without real accounts or push infrastructure.
+1. Sign in with an email magic link
+2. Create a household (get an invite code) or join with a code
+3. Add repeating / dated / on-demand chores — data is saved in Postgres for everyone in the household
 
-Cut from the full idea:
+Dark mode preference still stays on the device.
 
-- Real login → pick your name in the household
-- Server-side accounts → local storage on this device
-- Push notifications → browser reminders + an in-app “waiting for you” banner
+## Supabase setup checklist
 
-## Run it locally
+In the project dashboard:
+
+1. **Authentication → URL configuration**
+   - Site URL: `https://7pkngvy9k9-collab.github.io/household-chores`
+   - Redirect URLs: add the same URL
+2. Keep Email provider enabled (magic links)
+
+## Run locally
 
 ```bash
 python3 -m http.server 4173
 ```
 
-Open http://localhost:4173
+Open http://localhost:4173 — also add `http://localhost:4173` to Supabase redirect URLs for local magic links.
