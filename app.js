@@ -1,12 +1,16 @@
 const STORAGE_KEY = "household-chores.v1";
 
 const uid = () => crypto.randomUUID();
-const todayISO = () => new Date().toISOString().slice(0, 10);
+
+const toISODate = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const todayISO = () => toISODate(new Date());
 
 function addDays(iso, days) {
   const d = new Date(`${iso}T12:00:00`);
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return toISODate(d);
 }
 
 function defaultState() {
@@ -384,29 +388,29 @@ function choreCard(chore) {
   const mine = isMine(chore);
   const overdue = chore.kind !== "on_demand" && chore.dueDate && chore.dueDate < todayISO() && !chore.done;
   const last = chore.lastDoneBy
-    ? `Last done by ${escapeHtml(memberName(chore.lastDoneBy))}`
+    ? `Last: ${escapeHtml(memberName(chore.lastDoneBy))}`
     : "";
 
   return `
-    <article class="card chore">
-      <div>
+    <article class="card chore ${chore.done ? "is-done" : ""}">
+      <label class="chore-check done-check" title="Done">
+        <input type="checkbox" data-toggle-done="${chore.id}" ${chore.done ? "checked" : ""} />
+        <span class="sr-only">Done</span>
+      </label>
+      <div class="chore-body">
         <h3>${escapeHtml(chore.title)}</h3>
         <div class="meta">
           <span class="pill">${scheduleLabel(chore)}</span>
           <span class="pill ${mine ? "mine" : ""}">${holderId ? escapeHtml(memberName(holderId)) : "Anyone"}</span>
           ${chore.kind === "repeating" && chore.rotate ? `<span class="pill">Rotates</span>` : ""}
           ${overdue ? `<span class="pill overdue">Overdue</span>` : ""}
-          ${last ? `<span>${last}</span>` : ""}
+          ${last ? `<span class="last">${last}</span>` : ""}
         </div>
       </div>
-      <div class="actions">
-        ${
-          chore.done
-            ? `<button class="ghost" data-reopen="${chore.id}" type="button">Reopen</button>`
-            : `<button class="primary" data-done="${chore.id}" type="button">Mark done</button>`
-        }
-        <button class="danger" data-delete="${chore.id}" type="button">Remove</button>
-      </div>
+      <label class="chore-check remove-check" title="Remove">
+        <input type="checkbox" data-delete="${chore.id}" />
+        <span>Remove</span>
+      </label>
     </article>
   `;
 }
@@ -509,15 +513,17 @@ function bindApp() {
     });
   }
 
-  document.querySelectorAll("[data-done]").forEach((btn) => {
-    btn.addEventListener("click", () => completeChore(btn.dataset.done));
+  document.querySelectorAll("[data-toggle-done]").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked) completeChore(input.dataset.toggleDone);
+      else reopenChore(input.dataset.toggleDone);
+    });
   });
-  document.querySelectorAll("[data-reopen]").forEach((btn) => {
-    btn.addEventListener("click", () => reopenChore(btn.dataset.reopen));
-  });
-  document.querySelectorAll("[data-delete]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (confirm("Remove this chore?")) removeChore(btn.dataset.delete);
+  document.querySelectorAll("[data-delete]").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      if (confirm("Remove this chore?")) removeChore(input.dataset.delete);
+      else input.checked = false;
     });
   });
 }
