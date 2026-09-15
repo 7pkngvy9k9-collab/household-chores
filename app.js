@@ -33,6 +33,17 @@ function save(state) {
 }
 
 let state = load();
+let composerOpen = false;
+
+function openChoreComposer() {
+  composerOpen = true;
+  render();
+}
+
+function closeChoreComposer() {
+  composerOpen = false;
+  render();
+}
 
 function currentMember() {
   return state.members.find((m) => m.id === state.currentMemberId);
@@ -149,18 +160,23 @@ function pingDueNotification() {
 
 function render() {
   const root = document.getElementById("app");
-  if (!state.members.length) {
-    root.innerHTML = setupView();
-    bindSetup();
-    return;
+  try {
+    if (!state.members.length) {
+      root.innerHTML = setupView();
+      bindSetup();
+      return;
+    }
+    if (!state.currentMemberId) {
+      root.innerHTML = loginView();
+      bindLogin();
+      return;
+    }
+    root.innerHTML = appView();
+    bindApp();
+  } catch (error) {
+    console.error(error);
+    root.innerHTML = `<p class="empty">${escapeHtml(error.message)}</p>`;
   }
-  if (!state.currentMemberId) {
-    root.innerHTML = loginView();
-    bindLogin();
-    return;
-  }
-  root.innerHTML = appView();
-  bindApp();
 }
 
 function setupView() {
@@ -255,12 +271,42 @@ function appView() {
       <button class="chip ${mineOnly ? "active" : ""}" data-filter="mine" type="button">My turn</button>
     </div>
 
-    <section class="card composer">
-      <h2 class="section-title" style="margin-top:0">Add a chore</h2>
+    ${listSection("Due now", due, "Nothing due.")}
+    ${listSection("On demand", onDemand.filter((c) => !due.includes(c)), "No open on-demand chores.")}
+    ${listSection("Upcoming", upcoming, "No upcoming chores.")}
+    ${done.length ? listSection("Done", done, "") : ""}
+
+    ${composerDock()}
+  `;
+}
+
+function composerDock() {
+  return `
+    <div class="composer-dock ${composerOpen ? "open" : ""}">
+      <div class="composer-inner">
+        ${composerOpen ? composerSheet() : ""}
+        <button
+          class="primary add-chore-btn"
+          id="open-composer"
+          type="${composerOpen ? "submit" : "button"}"
+          ${composerOpen ? 'form="chore-form"' : 'onclick="openChoreComposer()"'}
+        >Add a chore</button>
+      </div>
+    </div>
+  `;
+}
+
+function composerSheet() {
+  return `
+    <section class="card composer-sheet" aria-label="Add a chore">
+      <div class="composer-head">
+        <h2 class="section-title" style="margin:0">Add a chore</h2>
+        <button class="ghost" id="close-composer" type="button" onclick="closeChoreComposer()">Close</button>
+      </div>
       <form id="chore-form" class="grid">
         <label class="field">
           <span>What needs doing?</span>
-          <input name="title" required placeholder="Take out recycling" />
+          <input name="title" id="chore-title" required placeholder="Take out recycling" />
         </label>
         <div class="row">
           <label class="field">
@@ -298,14 +344,8 @@ function appView() {
           <input type="checkbox" name="rotate" checked />
           Alternate between selected people after each completion
         </label>
-        <button class="primary" type="submit">Add to list</button>
       </form>
     </section>
-
-    ${listSection("Due now", due, "Nothing due.")}
-    ${listSection("On demand", onDemand.filter((c) => !due.includes(c)), "No open on-demand chores.")}
-    ${listSection("Upcoming", upcoming, "No upcoming chores.")}
-    ${done.length ? listSection("Done", done, "") : ""}
   `;
 }
 
@@ -413,35 +453,42 @@ function bindApp() {
   if (notifyBtn) notifyBtn.addEventListener("click", enableNotifications);
 
   const kind = document.getElementById("kind");
-  const syncKind = () => {
-    const value = kind.value;
-    document.getElementById("repeat-field").style.display = value === "repeating" ? "" : "none";
-    document.getElementById("date-field").style.display = value === "on_demand" ? "none" : "";
-    document.getElementById("rotate-field").style.display = value === "repeating" ? "" : "none";
-  };
-  kind.addEventListener("change", syncKind);
-  syncKind();
+  if (kind) {
+    const syncKind = () => {
+      const value = kind.value;
+      document.getElementById("repeat-field").style.display = value === "repeating" ? "" : "none";
+      document.getElementById("date-field").style.display = value === "on_demand" ? "none" : "";
+      document.getElementById("rotate-field").style.display = value === "repeating" ? "" : "none";
+    };
+    kind.addEventListener("change", syncKind);
+    syncKind();
+    document.getElementById("chore-title")?.focus();
+  }
 
-  document.getElementById("chore-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const data = new FormData(e.target);
-    const holderIds = data.getAll("holders");
-    const kindValue = String(data.get("kind"));
-    state.chores.unshift({
-      id: uid(),
-      title: String(data.get("title")).trim(),
-      kind: kindValue,
-      repeat: kindValue === "repeating" ? String(data.get("repeat")) : "none",
-      dueDate: kindValue === "on_demand" ? null : String(data.get("dueDate") || todayISO()),
-      rotate: kindValue === "repeating" && data.get("rotate") === "on" && holderIds.length > 1,
-      holderIds,
-      holderIndex: 0,
-      done: false,
-      lastDoneAt: null,
-      lastDoneBy: null,
+  const choreForm = document.getElementById("chore-form");
+  if (choreForm) {
+    choreForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = new FormData(e.target);
+      const holderIds = data.getAll("holders");
+      const kindValue = String(data.get("kind"));
+      state.chores.unshift({
+        id: uid(),
+        title: String(data.get("title")).trim(),
+        kind: kindValue,
+        repeat: kindValue === "repeating" ? String(data.get("repeat")) : "none",
+        dueDate: kindValue === "on_demand" ? null : String(data.get("dueDate") || todayISO()),
+        rotate: kindValue === "repeating" && data.get("rotate") === "on" && holderIds.length > 1,
+        holderIds,
+        holderIndex: 0,
+        done: false,
+        lastDoneAt: null,
+        lastDoneBy: null,
+      });
+      composerOpen = false;
+      persist();
     });
-    persist();
-  });
+  }
 
   document.querySelectorAll("[data-done]").forEach((btn) => {
     btn.addEventListener("click", () => completeChore(btn.dataset.done));

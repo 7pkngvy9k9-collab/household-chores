@@ -41,7 +41,7 @@ button {
 #app {
   max-width: 760px;
   margin: 0 auto;
-  padding: 28px 18px 80px;
+  padding: 28px 18px 120px;
 }
 
 .topbar {
@@ -221,8 +221,39 @@ h2,
   padding: 8px 2px 18px;
 }
 
-.composer {
-  margin-top: 8px;
+.composer-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 12px 18px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--bg) 36%);
+}
+
+.composer-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.add-chore-btn {
+  width: 100%;
+  padding: 14px 16px;
+  font-weight: 600;
+}
+
+.composer-sheet {
+  margin-bottom: 10px;
+  max-height: min(72vh, 640px);
+  overflow: auto;
+}
+
+.composer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .grid {
