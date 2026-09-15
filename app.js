@@ -16,6 +16,7 @@ function defaultState() {
     currentMemberId: "",
     chores: [],
     notifyAsked: false,
+    darkMode: false,
   };
 }
 
@@ -121,7 +122,23 @@ function removeChore(id) {
 
 function persist() {
   save(state);
+  applyTheme();
   render();
+}
+
+function applyTheme() {
+  document.documentElement.classList.toggle("theme-dark", Boolean(state.darkMode));
+}
+
+function toggleDarkMode() {
+  state.darkMode = !state.darkMode;
+  persist();
+}
+
+function themeToggleButton() {
+  return `<button class="ghost" id="toggle-theme" type="button">${
+    state.darkMode ? "Light mode" : "Dark mode"
+  }</button>`;
 }
 
 function waitingForMe(chore) {
@@ -164,19 +181,18 @@ function render() {
     if (!state.members.length) {
       root.innerHTML = setupView();
       bindSetup();
-      return;
-    }
-    if (!state.currentMemberId) {
+    } else if (!state.currentMemberId) {
       root.innerHTML = loginView();
       bindLogin();
-      return;
+    } else {
+      root.innerHTML = appView();
+      bindApp();
     }
-    root.innerHTML = appView();
-    bindApp();
   } catch (error) {
     console.error(error);
     root.innerHTML = `<p class="empty">${escapeHtml(error.message)}</p>`;
   }
+  applyTheme();
 }
 
 function setupView() {
@@ -199,6 +215,7 @@ function setupView() {
         </div>
         <button class="primary" type="submit">Create household</button>
       </form>
+      <div class="theme-slot">${themeToggleButton()}</div>
     </section>
   `;
 }
@@ -218,6 +235,7 @@ function loginView() {
         </label>
         <button class="primary" type="submit">Continue</button>
       </form>
+      <div class="theme-slot">${themeToggleButton()}</div>
     </section>
   `;
 }
@@ -250,6 +268,7 @@ function appView() {
             .join("")}
         </select>
         <button class="ghost" id="sign-out" type="button">Switch person</button>
+        ${themeToggleButton()}
       </div>
     </header>
 
@@ -504,3 +523,10 @@ function bindApp() {
 }
 
 render();
+
+document.addEventListener("click", (event) => {
+  const node = event.target instanceof Element ? event.target : event.target.parentElement;
+  if (!node?.closest("#toggle-theme")) return;
+  event.preventDefault();
+  toggleDarkMode();
+});

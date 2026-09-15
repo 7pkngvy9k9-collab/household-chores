@@ -1,5 +1,6 @@
 :root {
   --bg: #f3eee4;
+  --wash: #fff8ee;
   --ink: #1f1b16;
   --muted: #6b6258;
   --line: #e4d9c8;
@@ -9,7 +10,26 @@
   --sage-soft: #e4f0e8;
   --clay: #c45c26;
   --clay-soft: #fbe8dc;
+  --pill: #f3eadc;
   --shadow: 0 12px 32px rgba(47, 38, 24, 0.08);
+  color-scheme: light;
+}
+
+html.theme-dark {
+  --bg: #000000;
+  --wash: #0a0a0a;
+  --ink: #f4f0ea;
+  --muted: #b4aba0;
+  --line: #2a2a2a;
+  --card: #141414;
+  --sage: #4eae7f;
+  --sage-deep: #6ec894;
+  --sage-soft: #163326;
+  --clay: #ff8a4c;
+  --clay-soft: #3a1d10;
+  --pill: #1f1f1f;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
 }
 
 * {
@@ -21,7 +41,7 @@ body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(1200px 400px at 10% -10%, #fff8ee, transparent),
+    radial-gradient(1200px 400px at 10% -10%, var(--wash), transparent),
     var(--bg);
   color: var(--ink);
   font-family: "DM Sans", system-ui, sans-serif;
@@ -133,6 +153,10 @@ h2,
   border-color: var(--ink);
 }
 
+html.theme-dark .chip.active {
+  color: #000;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -163,7 +187,7 @@ h2,
 }
 
 .pill {
-  background: #f3eadc;
+  background: var(--pill);
   border-radius: 999px;
   padding: 3px 8px;
 }
@@ -204,6 +228,7 @@ h2,
 .ghost {
   background: transparent;
   border: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .danger {
@@ -288,9 +313,13 @@ h2,
   display: flex;
   gap: 6px;
   align-items: center;
-  background: #f3eadc;
+  background: var(--pill);
   border-radius: 999px;
   padding: 6px 10px;
+}
+
+.theme-slot {
+  margin-top: 16px;
 }
 
 .setup {
