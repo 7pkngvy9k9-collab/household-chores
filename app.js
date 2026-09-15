@@ -1,7 +1,7 @@
 const THEME_KEY = "household-chores.theme";
 const { supabaseUrl, supabaseAnonKey, siteUrl } = window.APP_CONFIG;
 
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+const db = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -188,7 +188,7 @@ function pingDueNotification() {
 async function loadHouseholdForUser() {
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   state.user = user;
   if (!user) {
     state.householdId = "";
@@ -198,7 +198,7 @@ async function loadHouseholdForUser() {
     return;
   }
 
-  const { data: member, error: memberError } = await supabase
+  const { data: member, error: memberError } = await db
     .from("members")
     .select("id, household_id, name, households(id, name, invite_code)")
     .eq("user_id", user.id)
@@ -220,12 +220,12 @@ async function loadHouseholdForUser() {
 
   const [{ data: members, error: membersError }, { data: chores, error: choresError }] =
     await Promise.all([
-      supabase
+      db
         .from("members")
         .select("id, name")
         .eq("household_id", state.householdId)
         .order("created_at"),
-      supabase
+      db
         .from("chores")
         .select("*")
         .eq("household_id", state.householdId)
@@ -261,7 +261,7 @@ async function completeChore(id) {
       lastDoneBy: doneBy,
     };
   }
-  const { error } = await supabase
+  const { error } = await db
     .from("chores")
     .update(choreToRow(next, state.householdId))
     .eq("id", id);
@@ -274,7 +274,7 @@ async function completeChore(id) {
 }
 
 async function reopenChore(id) {
-  const { error } = await supabase.from("chores").update({ done: false }).eq("id", id);
+  const { error } = await db.from("chores").update({ done: false }).eq("id", id);
   if (error) {
     setBusy(false, error.message);
     return;
@@ -284,7 +284,7 @@ async function reopenChore(id) {
 }
 
 async function removeChore(id) {
-  const { error } = await supabase.from("chores").delete().eq("id", id);
+  const { error } = await db.from("chores").delete().eq("id", id);
   if (error) {
     setBusy(false, error.message);
     return;
@@ -305,7 +305,7 @@ async function addChore(payload) {
     holder_index: 0,
     done: false,
   };
-  const { data, error } = await supabase.from("chores").insert(row).select("*").single();
+  const { data, error } = await db.from("chores").insert(row).select("*").single();
   if (error) throw error;
   state.chores.unshift(mapChore(data));
 }
@@ -585,7 +585,7 @@ function bindAuth() {
     state.authError = "";
     state.authMessage = "";
     render();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await db.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: siteUrl },
     });
@@ -616,7 +616,7 @@ function bindOnboarding() {
       .map((n) => String(n).trim())
       .filter(Boolean);
     setBusy(true);
-    const { data: created, error } = await supabase.rpc("create_household", {
+    const { data: created, error } = await db.rpc("create_household", {
       p_name: String(data.get("household")).trim(),
       p_member_names: names,
     });
@@ -637,8 +637,8 @@ function bindOnboarding() {
     setBusy(true);
     const [{ data: house, error: houseError }, { data: members, error: membersError }] =
       await Promise.all([
-        supabase.rpc("lookup_household_by_invite", { p_code: code }),
-        supabase.rpc("list_members_by_invite", { p_code: code }),
+        db.rpc("lookup_household_by_invite", { p_code: code }),
+        db.rpc("list_members_by_invite", { p_code: code }),
       ]);
     if (houseError || membersError) {
       setBusy(false, (houseError || membersError).message);
@@ -658,7 +658,7 @@ function bindOnboarding() {
     e.preventDefault();
     const memberId = String(new FormData(e.target).get("member"));
     setBusy(true);
-    const { error } = await supabase.rpc("join_household", {
+    const { error } = await db.rpc("join_household", {
       p_code: state.joinCode,
       p_member_id: memberId,
     });
@@ -671,7 +671,7 @@ function bindOnboarding() {
   });
 
   document.getElementById("sign-out")?.addEventListener("click", async () => {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
     state.user = null;
     state.householdId = "";
     render();
@@ -680,7 +680,7 @@ function bindOnboarding() {
 
 function bindApp() {
   document.getElementById("sign-out")?.addEventListener("click", async () => {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
     state.user = null;
     state.householdId = "";
     render();
@@ -762,7 +762,7 @@ document.addEventListener("click", (event) => {
   toggleDarkMode();
 });
 
-supabase.auth.onAuthStateChange(async () => {
+db.auth.onAuthStateChange(async () => {
   try {
     await loadHouseholdForUser();
     state.boot = false;
