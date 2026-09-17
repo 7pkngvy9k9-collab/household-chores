@@ -19,7 +19,7 @@ function toRepeat(value: string): ChoreRepeat {
   return CHORE_REPEATS.find((repeat) => repeat === value) ?? "none";
 }
 
-function mapChore(row: Tables<"chores">): Chore {
+function mapChore(row: Tables<"tasks">): Chore {
   return {
     id: row.id,
     title: row.title,
@@ -37,7 +37,7 @@ function mapChore(row: Tables<"chores">): Chore {
 
 export async function fetchChores(householdId: string): Promise<Chore[]> {
   const { data, error } = await supabase
-    .from("chores")
+    .from("tasks")
     .select("*")
     .eq("household_id", householdId)
     .order("created_at", { ascending: false });
@@ -48,7 +48,7 @@ export async function fetchChores(householdId: string): Promise<Chore[]> {
 
 export async function insertChore(householdId: string, chore: NewChore): Promise<Chore> {
   const { data, error } = await supabase
-    .from("chores")
+    .from("tasks")
     .insert({
       household_id: householdId,
       title: chore.title,
@@ -69,7 +69,7 @@ export async function insertChore(householdId: string, chore: NewChore): Promise
 
 export async function saveChore(chore: Chore): Promise<void> {
   const { error } = await supabase
-    .from("chores")
+    .from("tasks")
     .update({
       kind: chore.kind,
       repeat: chore.repeat,
@@ -89,7 +89,7 @@ export async function saveChore(chore: Chore): Promise<void> {
 
 export async function setChoreDone(id: string, done: boolean): Promise<void> {
   const { error } = await supabase
-    .from("chores")
+    .from("tasks")
     .update({ done, updated_at: new Date().toISOString() })
     .eq("id", id);
 
@@ -97,6 +97,6 @@ export async function setChoreDone(id: string, done: boolean): Promise<void> {
 }
 
 export async function deleteChore(id: string): Promise<void> {
-  const { error } = await supabase.from("chores").delete().eq("id", id);
+  const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) throw error;
 }

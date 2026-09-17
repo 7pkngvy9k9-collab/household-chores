@@ -28,7 +28,7 @@ type HouseholdValue = {
   error: string;
   household: Household | null;
   members: Member[];
-  /** The `members` row that belongs to the signed-in user. */
+  /** The household_members row that belongs to the signed-in user. */
   currentMemberId: string | null;
   reload: () => Promise<void>;
 };
@@ -62,7 +62,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     setError("");
 
     const membership = await supabase
-      .from("members")
+      .from("household_members")
       .select("id, household_id, households(id, name, invite_code)")
       .eq("user_id", userId)
       .maybeSingle();
@@ -83,7 +83,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     }
 
     const roster = await supabase
-      .from("members")
+      .from("household_members")
       .select("id, name")
       .eq("household_id", row.household_id)
       .order("created_at");

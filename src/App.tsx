@@ -2,8 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { useAuth } from "./auth/AuthProvider";
 import { SignInPage } from "./auth/SignInPage";
-import { ChoresPage } from "./chores/ChoresPage";
-import { ChoresProvider } from "./chores/ChoresProvider";
+import { ChoresPage } from "./tasks/ChoresPage";
+import { ChoresProvider } from "./tasks/ChoresProvider";
 import { ErrorMessage } from "./components/Feedback";
 import { DashboardPage } from "./dashboard/DashboardPage";
 import { HouseholdProvider, useHousehold } from "./household/HouseholdProvider";

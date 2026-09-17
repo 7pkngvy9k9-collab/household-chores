@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
-import { useHouseholdChores } from "../chores/ChoresProvider";
-import { isDue, isWaitingFor, todayISO } from "../chores/schedule";
+import { useHouseholdChores } from "../tasks/ChoresProvider";
+import { isDue, isWaitingFor, todayISO } from "../tasks/schedule";
 import { ErrorMessage } from "../components/Feedback";
 import { useHousehold } from "../household/HouseholdProvider";
 import { greetingFor } from "./greeting";
