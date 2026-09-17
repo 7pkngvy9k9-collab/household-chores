@@ -90,6 +90,66 @@ export type Database = {
           { foreignKeyName: "chores_last_done_by_fkey"; columns: ["last_done_by"]; isOneToOne: false; referencedRelation: "household_members"; referencedColumns: ["id"] },
         ]
       }
+      household_invitations: {
+        Row: { code: string; created_at: string; created_by: string | null; expires_at: string | null; household_id: string; id: string; max_uses: number | null; uses: number }
+        Insert: { code: string; created_at?: string; created_by?: string | null; expires_at?: string | null; household_id: string; id?: string; max_uses?: number | null; uses?: number }
+        Update: { code?: string; created_at?: string; created_by?: string | null; expires_at?: string | null; household_id?: string; id?: string; max_uses?: number | null; uses?: number }
+        Relationships: []
+      }
+      posts: {
+        Row: { author_id: string; body: string; created_at: string; household_id: string; id: string; pinned: boolean; title: string }
+        Insert: { author_id: string; body?: string; created_at?: string; household_id: string; id?: string; pinned?: boolean; title: string }
+        Update: { author_id?: string; body?: string; created_at?: string; household_id?: string; id?: string; pinned?: boolean; title?: string }
+        Relationships: []
+      }
+      household_events: {
+        Row: { created_at: string; created_by: string | null; event_date: string; household_id: string; id: string; notes: string | null; title: string }
+        Insert: { created_at?: string; created_by?: string | null; event_date: string; household_id: string; id?: string; notes?: string | null; title: string }
+        Update: { created_at?: string; created_by?: string | null; event_date?: string; household_id?: string; id?: string; notes?: string | null; title?: string }
+        Relationships: []
+      }
+      absences: {
+        Row: { created_at: string; end_date: string; household_id: string; id: string; member_id: string; reason: string | null; start_date: string }
+        Insert: { created_at?: string; end_date: string; household_id: string; id?: string; member_id: string; reason?: string | null; start_date: string }
+        Update: { created_at?: string; end_date?: string; household_id?: string; id?: string; member_id?: string; reason?: string | null; start_date?: string }
+        Relationships: []
+      }
+      polls: {
+        Row: { created_at: string; created_by: string | null; household_id: string; id: string; question: string }
+        Insert: { created_at?: string; created_by?: string | null; household_id: string; id?: string; question: string }
+        Update: { created_at?: string; created_by?: string | null; household_id?: string; id?: string; question?: string }
+        Relationships: []
+      }
+      poll_options: {
+        Row: { id: string; label: string; poll_id: string; position: number }
+        Insert: { id?: string; label: string; poll_id: string; position?: number }
+        Update: { id?: string; label?: string; poll_id?: string; position?: number }
+        Relationships: []
+      }
+      poll_votes: {
+        Row: { created_at: string; member_id: string; option_id: string; poll_id: string }
+        Insert: { created_at?: string; member_id: string; option_id: string; poll_id: string }
+        Update: { created_at?: string; member_id?: string; option_id?: string; poll_id?: string }
+        Relationships: []
+      }
+      notifications: {
+        Row: { body: string; created_at: string; household_id: string; id: string; member_id: string; read_at: string | null; title: string }
+        Insert: { body?: string; created_at?: string; household_id: string; id?: string; member_id: string; read_at?: string | null; title: string }
+        Update: { body?: string; created_at?: string; household_id?: string; id?: string; member_id?: string; read_at?: string | null; title?: string }
+        Relationships: []
+      }
+      budgets: {
+        Row: { amount: number; created_at: string; household_id: string; id: string; month: string }
+        Insert: { amount: number; created_at?: string; household_id: string; id?: string; month: string }
+        Update: { amount?: number; created_at?: string; household_id?: string; id?: string; month?: string }
+        Relationships: []
+      }
+      receipts: {
+        Row: { amount: number; created_at: string; household_id: string; id: string; note: string | null; paid_by: string | null; title: string }
+        Insert: { amount: number; created_at?: string; household_id: string; id?: string; note?: string | null; paid_by?: string | null; title: string }
+        Update: { amount?: number; created_at?: string; household_id?: string; id?: string; note?: string | null; paid_by?: string | null; title?: string }
+        Relationships: []
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -106,6 +166,9 @@ export type Database = {
       list_members_by_invite: { Args: { p_code: string }; Returns: { claimed: boolean; id: string; name: string }[] }
       lookup_household_by_invite: { Args: { p_code: string }; Returns: { id: string; invite_code: string; name: string }[] }
       remove_household_member: { Args: { p_member_id: string }; Returns: undefined }
+      household_id_from_invite_code: { Args: { p_code: string }; Returns: string }
+      create_household_invitation: { Args: { p_household_id: string; p_days: number }; Returns: string }
+      notify_household: { Args: { p_household_id: string; p_title: string; p_body: string }; Returns: undefined }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }

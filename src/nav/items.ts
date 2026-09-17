@@ -15,6 +15,7 @@ export const PRIMARY_NAV: NavItem[] = [
 
 export const SECONDARY_NAV: NavItem[] = [
   { to: "/noticeboard", label: "Noticeboard", icon: "notice" },
+  { to: "/polls", label: "Polls", icon: "notice" },
   { to: "/members", label: "Members", icon: "members" },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];

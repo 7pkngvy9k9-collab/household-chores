@@ -173,6 +173,35 @@ export function MembersPage() {
         </button>
       </form>
 
+      <form
+        className="card grid"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void (async () => {
+            setBusy(true);
+            setError("");
+            const { data, error: inviteError } = await supabase.rpc("create_household_invitation", {
+              p_household_id: householdId,
+              p_days: 7,
+            });
+            if (inviteError) {
+              setError(reportError(inviteError, "The invite could not be created."));
+            } else {
+              setMessage(`Time-limited code: ${data}. Valid 7 days.`);
+            }
+            setBusy(false);
+          })();
+        }}
+      >
+        <h2 className="section-title" style={{ margin: 0 }}>
+          Time-limited invite
+        </h2>
+        <p className="sub">Creates a second code that expires in 7 days. The permanent household code still works.</p>
+        <button className="ghost" type="submit" disabled={busy}>
+          Create 7-day code
+        </button>
+      </form>
+
       <button className="ghost" type="button" disabled={busy} onClick={() => void leaveHousehold()}>
         Leave household
       </button>
