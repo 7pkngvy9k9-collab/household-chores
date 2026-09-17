@@ -20,15 +20,15 @@ export class RenderErrorBoundary extends Component<
 > {
   state = { failed: false };
 
-  static getDerivedStateFromError(): { failed: boolean } {
+  static override getDerivedStateFromError(): { failed: boolean } {
     return { failed: true };
   }
 
-  componentDidCatch(_error: Error, _info: ErrorInfo): void {
+  override componentDidCatch(_error: Error, _info: ErrorInfo): void {
     this.setState({ failed: true });
   }
 
-  render(): ReactNode {
+  override render(): ReactNode {
     if (this.state.failed) return null;
     return this.props.children;
   }
