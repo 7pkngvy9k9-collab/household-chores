@@ -48,7 +48,10 @@ export function SettingsPage() {
   return (
     <section>
       <header className="page-head">
-        <h1 className="brand">Settings</h1>
+        <div>
+          <p className="eyebrow">{household.name}</p>
+          <h1 className="brand">Settings</h1>
+        </div>
       </header>
 
       <ErrorMessage message={error} />

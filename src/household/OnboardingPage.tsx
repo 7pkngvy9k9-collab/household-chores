@@ -113,6 +113,7 @@ export function OnboardingPage() {
 
   return (
     <section className="setup card">
+      <p className="eyebrow">Get started</p>
       <h1>Set up your household</h1>
       <p className="sub">
         Signed in as {user?.email ?? "you"}. Create a household or join with an invite code.

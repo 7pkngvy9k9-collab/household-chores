@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthProvider";
+import { Icon } from "../components/Icons";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useHousehold } from "../household/HouseholdProvider";
 import { MOBILE_PRIMARY_NAV, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "../nav/items";
@@ -15,7 +16,7 @@ function NavList({ items }: { items: NavItem[] }) {
     <nav className="side-nav" aria-label="Household">
       {items.map((item) => (
         <NavLink key={item.to} to={item.to} end={item.end} className={navClassName}>
-          <span aria-hidden="true">{item.icon}</span>
+          <Icon name={item.icon} />
           {item.label}
         </NavLink>
       ))}
@@ -30,18 +31,25 @@ export function AppLayout() {
 
   if (!household) return null;
 
+  const mark = household.name.trim().slice(0, 1).toUpperCase() || "H";
+
   return (
     <div className="app-frame">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <p className="sidebar-kicker">Household</p>
-          <h1 className="brand">{household.name}</h1>
-          <p className="sub">
-            Invite code: <strong>{household.inviteCode}</strong>
-          </p>
+          <div className="brand-mark" aria-hidden="true">
+            {mark}
+          </div>
+          <div>
+            <p className="sidebar-kicker">Household</p>
+            <h1 className="brand">{household.name}</h1>
+          </div>
         </div>
+        <p className="invite-chip">
+          Invite <strong>{household.inviteCode}</strong>
+        </p>
         <NavList items={PRIMARY_NAV} />
-        <hr className="divider" />
+        <p className="nav-label">Manage</p>
         <NavList items={SECONDARY_NAV} />
         <div className="sidebar-foot">
           <ThemeToggle />
@@ -58,7 +66,7 @@ export function AppLayout() {
       <nav className="bottom-nav" aria-label="Primary">
         {MOBILE_PRIMARY_NAV.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.end} className={navClassName}>
-            <span aria-hidden="true">{item.icon}</span>
+            <Icon name={item.icon} />
             {item.label}
           </NavLink>
         ))}
@@ -68,7 +76,7 @@ export function AppLayout() {
           aria-expanded={moreOpen}
           onClick={() => setMoreOpen((open) => !open)}
         >
-          <span aria-hidden="true">☰</span>
+          <Icon name="more" />
           More
         </button>
       </nav>
@@ -88,7 +96,7 @@ export function AppLayout() {
               </button>
             </div>
             <nav className="more-nav" onClick={() => setMoreOpen(false)}>
-              <NavList items={[{ to: "/calendar", label: "Calendar", icon: "📅" }, ...SECONDARY_NAV]} />
+              <NavList items={[{ to: "/calendar", label: "Calendar", icon: "calendar" }, ...SECONDARY_NAV]} />
             </nav>
             <div className="sidebar-foot">
               <ThemeToggle />

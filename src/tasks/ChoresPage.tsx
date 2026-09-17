@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHouseholdChores } from "./ChoresProvider";
 import { ErrorMessage } from "../components/Feedback";
 import { useHousehold } from "../household/HouseholdProvider";
+import { fetchCompletions, type TaskCompletion } from "./api";
 import { ChoreCard } from "./ChoreCard";
 import { ChoreComposer } from "./ChoreComposer";
 import {
@@ -51,6 +52,7 @@ export function ChoresPage() {
 
   const [mineOnly, setMineOnly] = useState(false);
   const [remindersOn, setRemindersOn] = useState(() => notificationsEnabled());
+  const [completions, setCompletions] = useState<TaskCompletion[]>([]);
   const pinged = useRef(false);
 
   const memberName = useCallback(
@@ -89,6 +91,25 @@ export function ChoresPage() {
   const waitingCount = groups.waiting.length;
 
   useEffect(() => {
+    const ids = chores.map((chore) => chore.id);
+    if (ids.length === 0) {
+      setCompletions([]);
+      return;
+    }
+    let active = true;
+    void fetchCompletions(ids)
+      .then((rows) => {
+        if (active) setCompletions(rows);
+      })
+      .catch(() => {
+        if (active) setCompletions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [chores]);
+
+  useEffect(() => {
     if (loading || pinged.current || !remindersOn) return;
     pinged.current = true;
     notifyWaiting(currentMemberName, waitingCount);
@@ -104,6 +125,7 @@ export function ChoresPage() {
     <section>
       <header className="page-head">
         <div>
+          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Tasks</h1>
           <p className="sub">Signed in as {currentMemberName}</p>
         </div>
@@ -171,6 +193,26 @@ export function ChoresPage() {
           />
           {groups.done.length > 0 ? (
             <ChoreSection title="Done" chores={groups.done} empty="" handlers={handlers} />
+          ) : null}
+          {completions.length > 0 ? (
+            <>
+              <h2 className="section-title">Recent completions</h2>
+              <ul className="dash-list card">
+                {completions.map((row) => {
+                  const task = chores.find((chore) => chore.id === row.taskId);
+                  const who =
+                    members.find((member) => member.userId === row.userId)?.name ?? "Someone";
+                  return (
+                    <li key={row.id}>
+                      <strong>{task?.title ?? "Task"}</strong>
+                      <span className="sub">
+                        {who} · {new Date(row.completedAt).toLocaleString()}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           ) : null}
         </>
       )}
