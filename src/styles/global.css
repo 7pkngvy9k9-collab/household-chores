@@ -62,7 +62,12 @@ button {
   cursor: pointer;
 }
 
-#app {
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#root {
   max-width: 760px;
   margin: 0 auto;
   padding: 28px 18px 120px;
@@ -135,6 +140,32 @@ h2,
 .banner.ok {
   background: var(--sage-soft);
   color: var(--sage-deep);
+}
+
+/* Feedback messages. The prototype referenced these classes without defining
+   them, so errors rendered as unstyled body text. */
+.error,
+.ok-msg {
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+
+.error {
+  background: var(--clay-soft);
+  color: var(--banner-ink);
+}
+
+.ok-msg {
+  background: var(--sage-soft);
+  color: var(--sage-deep);
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 20px 0;
 }
 
 .filters {
@@ -300,28 +331,6 @@ html.theme-dark .chip.active {
 .empty {
   color: var(--muted);
   padding: 8px 2px 18px;
-}
-
-.error {
-  color: var(--clay);
-  background: var(--clay-soft);
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin: 0 0 12px;
-}
-
-.ok-msg {
-  color: var(--sage-deep);
-  background: var(--sage-soft);
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin: 0 0 12px;
-}
-
-.divider {
-  border: 0;
-  border-top: 1px solid var(--line);
-  margin: 22px 0;
 }
 
 .composer-dock {

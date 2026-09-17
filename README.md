@@ -1,6 +1,7 @@
 # Household chores
 
-A shared household chore list with permanent cloud storage (Supabase) and GitHub Pages hosting.
+A shared household chore list with permanent cloud storage (Supabase), built with
+Vite + React + TypeScript and hosted on GitHub Pages.
 
 **Live:** https://7pkngvy9k9-collab.github.io/household-chores/
 
@@ -12,22 +13,66 @@ A shared household chore list with permanent cloud storage (Supabase) and GitHub
 
 Dark mode preference still stays on the device.
 
-## Supabase setup checklist
+## Run locally
+
+Requires Node.js 22 or newer.
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL Vite prints (http://localhost:5173/household-chores/ by default) — also add
+`http://localhost:5173/household-chores/` to the Supabase redirect URLs so confirmation
+links work locally.
+
+Other scripts:
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the dev server with hot reload |
+| `npm run typecheck` | Type-check without emitting (`tsc --noEmit`) |
+| `npm run build` | Type-check, then build the production bundle into `dist/` |
+| `npm run preview` | Serve the built `dist/` locally |
+
+## Deployment
+
+`.github/workflows/deploy.yml` builds the app and publishes `dist/` on every push to
+`main`. This requires **Settings → Pages → Build and deployment → Source: GitHub
+Actions**; the old "Deploy from a branch" mode cannot serve this app because it now
+needs a build step.
+
+## Supabase
+
+Project ref: **`ezdmzygqkegevlzbmnko`** (the CLI keeps its own copy in `supabase/.temp/`,
+which is not committed, so link with `npx supabase link --project-ref ezdmzygqkegevlzbmnko`).
+
+The publishable project URL and anon key live in `src/lib/config.ts`. They are meant to
+be visible in the browser — row level security is what actually protects household data.
+
+### Database migrations
+
+`supabase/migrations/` holds the SQL history of the database. To apply pending migrations
+to the hosted project:
+
+```bash
+npx supabase db push
+```
+
+After changing the schema, regenerate the TypeScript types so queries stay type-safe:
+
+```bash
+npx supabase gen types typescript --project-id ezdmzygqkegevlzbmnko > src/lib/database.types.ts
+```
+
+### Dashboard setup checklist
 
 In the project dashboard:
 
 1. **Authentication → URL configuration**
-   - Site URL: `https://7pkngvy9k9-collab.github.io/household-chores`
-   - Redirect URLs: add the same URL
+   - Site URL: `https://7pkngvy9k9-collab.github.io/household-chores/`
+   - Redirect URLs: add the same URL. The trailing `/household-chores/` path matters —
+     the app is served from a subdirectory, so a redirect to the bare origin will 404.
 2. Keep the Email provider enabled
 3. **Authentication → Providers → Email**: turn off "Confirm email" if you want new
    accounts to sign in immediately instead of clicking a confirmation email first
-
-## Run locally
-
-```bash
-python3 -m http.server 4173
-```
-
-Open http://localhost:4173 — also add `http://localhost:4173` to Supabase redirect URLs so
-confirmation links work locally.
