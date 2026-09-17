@@ -68,9 +68,7 @@ export function ShoppingPage() {
     <section>
       <header className="page-head">
         <div>
-          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Shopping</h1>
-          <p className="sub">Shared lists update live for everyone in the household.</p>
         </div>
       </header>
 
@@ -150,7 +148,7 @@ export function ShoppingPage() {
 
       {boughtItems.length > 0 ? (
         <>
-          <h2 className="section-title">Purchased</h2>
+          <h2 className="section-title">Bought</h2>
           <div className="checklist">
             {boughtItems.map((item) => (
               <ListRow
@@ -166,8 +164,8 @@ export function ShoppingPage() {
       ) : null}
 
       <form className="card grid" onSubmit={(event) => void convert(event)}>
-        <h2 className="section-title" style={{ margin: 0 }}>
-          Record as expense
+          <h2 className="section-title" style={{ margin: 0 }}>
+          Convert to expense
         </h2>
         <p className="sub">Turn this shopping trip into a shared cost.</p>
         <label className="field">

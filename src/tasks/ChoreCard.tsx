@@ -40,6 +40,8 @@ export function ChoreCard({
           {meta}
         </span>
       }
+      mark={holder.trim().slice(0, 1).toUpperCase()}
+      overdue={isOverdue(chore)}
       checked={chore.done}
       completeLabel={chore.done ? `Reopen ${chore.title}` : `Mark ${chore.title} done`}
       onToggle={(next) => (next ? onComplete(chore.id) : onReopen(chore.id))}

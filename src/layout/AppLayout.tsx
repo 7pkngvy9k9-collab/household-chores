@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthProvider";
+import { RenderErrorBoundary } from "../components/Feedback";
 import { Icon } from "../components/Icons";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { NotificationBell } from "../notifications/NotificationBell";
@@ -53,7 +54,9 @@ export function AppLayout() {
         <p className="nav-label">Household</p>
         <NavList items={HOUSEHOLD_NAV} />
         <div className="sidebar-foot">
-          <NotificationBell />
+          <RenderErrorBoundary>
+            <NotificationBell />
+          </RenderErrorBoundary>
           <ThemeToggle />
           <button className="ghost" type="button" onClick={() => void signOut()}>
             Sign out
@@ -68,7 +71,9 @@ export function AppLayout() {
           </span>
           {household.name}
         </button>
-        <NotificationBell />
+        <RenderErrorBoundary>
+          <NotificationBell />
+        </RenderErrorBoundary>
       </div>
 
       <main className="app-main">

@@ -100,9 +100,7 @@ export function NoticeboardPage() {
     <section>
       <header className="page-head">
         <div>
-          <p className="eyebrow">{household.name}</p>
-          <h1 className="brand">Noticeboard</h1>
-          <p className="sub">Pin notes the household should see.</p>
+          <h1 className="brand">Pinboard</h1>
         </div>
       </header>
       <ErrorMessage message={error} />
@@ -123,11 +121,8 @@ export function NoticeboardPage() {
         <p className="empty">No posts yet. Pin notes the household should see.</p>
       ) : (
         posts.map((post) => (
-          <article className="card" key={post.id}>
-            <h3>
-              {post.pinned ? "📌 " : ""}
-              {post.title}
-            </h3>
+          <article className={`card notice-card${post.pinned ? " is-pinned" : ""}`} key={post.id}>
+            <h3>{post.title}</h3>
             <p className="sub">
               {authorName(post.authorId)} · {new Date(post.createdAt).toLocaleString()}
             </p>

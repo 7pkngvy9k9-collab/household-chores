@@ -11,8 +11,10 @@ export function useRealtimeTable(
   useEffect(() => {
     if (!filter) return;
 
+    // Unique name per mount: supabase.channel(name) reuses a live channel,
+    // and .on() after subscribe() throws (two NotificationBells share "notifications").
     const channel = supabase
-      .channel(channelName)
+      .channel(`${channelName}:${crypto.randomUUID()}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table, filter },

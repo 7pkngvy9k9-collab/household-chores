@@ -9,7 +9,6 @@ import { formatMoney } from "../lib/money";
 import { fetchShoppingItems, fetchShoppingLists } from "../shopping/api";
 import { useHouseholdChores } from "../tasks/ChoresProvider";
 import { isDue, isWaitingFor, todayISO } from "../tasks/schedule";
-import { greetingFor } from "./greeting";
 
 export function DashboardPage() {
   const { household, members, currentMemberId } = useHousehold();
@@ -45,7 +44,6 @@ export function DashboardPage() {
   if (!household) return null;
 
   const today = todayISO();
-  const myName = members.find((member) => member.id === currentMemberId)?.name ?? "you";
   const mine = chores.filter((chore) => isWaitingFor(chore, currentMemberId, today));
   const dueToday = chores.filter((chore) => isDue(chore, today));
   const open = chores.filter((chore) => !chore.done);
@@ -66,10 +64,7 @@ export function DashboardPage() {
     <section>
       <header className="page-head">
         <div>
-          <p className="eyebrow">{household.name}</p>
-          <h1 className="brand">
-            {greetingFor()} {myName}
-          </h1>
+          <h1 className="brand">{household.name}</h1>
         </div>
         <button className="icon-btn" type="button" onClick={() => void reload()}>
           <Icon name="refresh" />

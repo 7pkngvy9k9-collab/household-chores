@@ -20,6 +20,9 @@ export function FinancesPage() {
 
   const memberName = (id: string) => members.find((member) => member.id === id)?.name ?? "Unknown";
   const suggestions = suggestSettlements(finances.balances);
+  const mine = finances.balances.find((row) => row.memberId === currentMemberId);
+  const owe = mine && mine.balance < -0.009 ? Math.abs(mine.balance) : 0;
+  const owed = mine && mine.balance > 0.009 ? mine.balance : 0;
 
   function toggleParticipant(id: string) {
     setParticipants((current) =>
@@ -40,9 +43,7 @@ export function FinancesPage() {
     <section>
       <header className="page-head">
         <div>
-          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Finances</h1>
-          <p className="sub">Shared expenses, balances, and settlements.</p>
         </div>
         <button className="ghost" type="button" onClick={() => void finances.reload()}>
           Refresh
@@ -51,6 +52,17 @@ export function FinancesPage() {
 
       <ErrorMessage message={finances.error} />
       {finances.loading ? <p className="empty">Loading finances…</p> : null}
+
+      <div className="finance-tiles">
+        <p className="finance-tile owe">
+          <span>You owe</span>
+          <strong>{formatMoney(owe, household.currency)}</strong>
+        </p>
+        <p className="finance-tile">
+          <span>You are owed</span>
+          <strong>{formatMoney(owed, household.currency)}</strong>
+        </p>
+      </div>
 
       <h2 className="section-title">Balances</h2>
       {finances.balances.length === 0 ? (

@@ -129,9 +129,7 @@ export function ChoresPage() {
     <section>
       <header className="page-head">
         <div>
-          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Tasks</h1>
-          <p className="sub">Signed in as {currentMemberName}</p>
         </div>
       </header>
 
@@ -196,7 +194,7 @@ export function ChoresPage() {
             handlers={handlers}
           />
           {groups.done.length > 0 ? (
-            <ChoreSection title="Done" chores={groups.done} empty="" handlers={handlers} />
+            <ChoreSection title="Completed" chores={groups.done} empty="" handlers={handlers} />
           ) : null}
           {completions.length > 0 ? (
             <>

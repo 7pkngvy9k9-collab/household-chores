@@ -112,12 +112,9 @@ export function OnboardingPage() {
   }
 
   return (
-    <section className="setup card">
-      <p className="eyebrow">Get started</p>
-      <h1>Set up your household</h1>
-      <p className="sub">
-        Signed in as {user?.email ?? "you"}. Create a household or join with an invite code.
-      </p>
+    <section className="setup">
+      <h1>Create a household</h1>
+      <p className="sub">{user?.email ?? ""}</p>
 
       <ErrorMessage message={error} />
 

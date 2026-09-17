@@ -6,6 +6,8 @@ import { Icon } from "./Icons";
 type Props = {
   title: string;
   meta?: ReactNode;
+  mark?: string;
+  overdue?: boolean;
   checked: boolean;
   completeLabel: string;
   onToggle: (next: boolean) => void;
@@ -16,6 +18,8 @@ type Props = {
 export function ListRow({
   title,
   meta,
+  mark,
+  overdue,
   checked,
   completeLabel,
   onToggle,
@@ -29,6 +33,11 @@ export function ListRow({
         <span className="list-row-title">{title}</span>
         {meta ? <span className="list-row-meta">{meta}</span> : null}
       </button>
+      {mark ? (
+        <span className={`who-mark${overdue ? " is-overdue" : ""}`} aria-hidden="true">
+          {mark}
+        </span>
+      ) : null}
       {onRemove ? <RowMenu label={`${removeLabel} ${title}`} onRemove={onRemove} /> : null}
     </article>
   );

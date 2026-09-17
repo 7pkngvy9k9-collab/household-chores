@@ -1,3 +1,5 @@
+import { Component, type ErrorInfo, type ReactNode } from "react";
+
 export function ErrorMessage({ message }: { message: string }) {
   if (!message) return null;
   return (
@@ -10,4 +12,24 @@ export function ErrorMessage({ message }: { message: string }) {
 export function SuccessMessage({ message }: { message: string }) {
   if (!message) return null;
   return <p className="ok-msg">{message}</p>;
+}
+
+export class RenderErrorBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  componentDidCatch(_error: Error, _info: ErrorInfo): void {
+    this.setState({ failed: true });
+  }
+
+  render(): ReactNode {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
 }

@@ -56,10 +56,12 @@ export function SignInPage() {
   }
 
   return (
-    <section className="setup card">
-      <p className="eyebrow">Household</p>
-      <h1>Welcome back</h1>
-      <p className="sub">Sign in to keep tasks, shopping, and shared costs in one place.</p>
+    <section className="setup">
+      <div className="auth-mark" aria-hidden="true">
+        H
+      </div>
+      <h1>Household</h1>
+      <p className="sub">Shared chores, shopping, pinboard, finances</p>
 
       <ErrorMessage message={error} />
       <SuccessMessage message={message} />
@@ -72,7 +74,7 @@ export function SignInPage() {
             type="email"
             required
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder="Email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
@@ -85,7 +87,7 @@ export function SignInPage() {
             required
             minLength={6}
             autoComplete="current-password"
-            placeholder="At least 6 characters"
+            placeholder="Password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
@@ -93,12 +95,11 @@ export function SignInPage() {
         <button className="primary" type="submit" disabled={busy}>
           {busy ? "Working…" : "Sign in"}
         </button>
-        <button className="ghost" type="button" disabled={busy} onClick={handleSignUp}>
-          Create account
+        <button className="linkish" type="button" disabled={busy} onClick={handleSignUp}>
+          Create household or join with invite code
         </button>
       </form>
 
-      <p className="sub">New here? Enter an email and password, then choose Create account.</p>
       <div className="theme-slot">
         <ThemeToggle />
       </div>
