@@ -98,6 +98,7 @@ export function MembersPage() {
     <section>
       <header className="page-head">
         <div>
+          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Members</h1>
           <p className="sub">
             Invite code: <strong>{inviteCode}</strong>

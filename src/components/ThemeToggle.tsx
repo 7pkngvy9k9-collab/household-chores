@@ -1,10 +1,17 @@
 import { useTheme } from "../theme/ThemeProvider";
+import { Icon } from "./Icons";
 
 export function ThemeToggle() {
   const { dark, toggle } = useTheme();
   return (
-    <button className="ghost" type="button" onClick={toggle}>
-      {dark ? "Light mode" : "Dark mode"}
+    <button
+      className="icon-btn"
+      type="button"
+      onClick={toggle}
+      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <Icon name={dark ? "sun" : "moon"} />
+      <span>{dark ? "Light" : "Dark"}</span>
     </button>
   );
 }

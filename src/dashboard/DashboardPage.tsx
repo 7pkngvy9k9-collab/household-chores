@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { ErrorMessage } from "../components/Feedback";
+import { Icon } from "../components/Icons";
 import { fetchBalances } from "../finance/api";
 import { useHousehold } from "../household/HouseholdProvider";
 import { formatMoney } from "../lib/money";
@@ -65,12 +66,13 @@ export function DashboardPage() {
     <section>
       <header className="page-head">
         <div>
+          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">
             {greetingFor()} {myName}
           </h1>
-          <p className="sub">{household.name}</p>
         </div>
-        <button className="ghost" type="button" onClick={() => void reload()}>
+        <button className="icon-btn" type="button" onClick={() => void reload()}>
+          <Icon name="refresh" />
           Refresh
         </button>
       </header>
@@ -79,9 +81,30 @@ export function DashboardPage() {
 
       {loading ? <p className="empty">Loading your household…</p> : null}
 
+      <ul className="stat-strip">
+        <li>
+          <strong>{members.length}</strong>
+          <span>Members</span>
+        </li>
+        <li>
+          <strong>{dueToday.length}</strong>
+          <span>Due today</span>
+        </li>
+        <li>
+          <strong>{open.length}</strong>
+          <span>Open tasks</span>
+        </li>
+        <li>
+          <strong>{completionRate}%</strong>
+          <span>Done</span>
+        </li>
+      </ul>
+
       <div className="dash-grid">
         <article className="card dash-card">
-          <p className="dash-kicker">My tasks</p>
+          <p className="dash-kicker">
+            <Icon name="tasks" /> My tasks
+          </p>
           {mine.length === 0 ? (
             <p className="empty">Nothing waiting for you right now.</p>
           ) : (
@@ -100,8 +123,10 @@ export function DashboardPage() {
         </article>
 
         <article className="card dash-card">
-          <p className="dash-kicker">Shopping</p>
-          <p className="empty">
+          <p className="dash-kicker">
+            <Icon name="shopping" /> Shopping
+          </p>
+          <p className="metric">
             {openShopping === null
               ? "Loading shopping…"
               : openShopping === 0
@@ -114,33 +139,20 @@ export function DashboardPage() {
         </article>
 
         <article className="card dash-card">
-          <p className="dash-kicker">Finances</p>
-          <p className="empty">{financeCopy}</p>
+          <p className="dash-kicker">
+            <Icon name="finances" /> Finances
+          </p>
+          <p className="metric">{financeCopy}</p>
           <Link className="dash-more" to="/finances">
             Open finances
           </Link>
         </article>
 
         <article className="card dash-card">
-          <p className="dash-kicker">Household</p>
-          <ul className="dash-stats">
-            <li>
-              <strong>{members.length}</strong>
-              <span>members</span>
-            </li>
-            <li>
-              <strong>{dueToday.length}</strong>
-              <span>due today</span>
-            </li>
-            <li>
-              <strong>{open.length}</strong>
-              <span>open tasks</span>
-            </li>
-            <li>
-              <strong>{completionRate}%</strong>
-              <span>done</span>
-            </li>
-          </ul>
+          <p className="dash-kicker">
+            <Icon name="members" /> Household
+          </p>
+          <p className="metric">{members.map((member) => member.name).join(" · ")}</p>
           <Link className="dash-more" to="/members">
             Open members
           </Link>

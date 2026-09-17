@@ -39,6 +39,7 @@ export function FinancesPage() {
     <section>
       <header className="page-head">
         <div>
+          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Finances</h1>
           <p className="sub">Shared expenses, balances, and settlements.</p>
         </div>

@@ -11,7 +11,10 @@ export function PlaceholderPage({ title, body, actionLabel, actionTo }: Props) {
   return (
     <section>
       <header className="page-head">
-        <h1 className="brand">{title}</h1>
+        <div>
+          <p className="eyebrow">Coming later</p>
+          <h1 className="brand">{title}</h1>
+        </div>
       </header>
       <div className="card">
         <p className="empty" style={{ paddingBottom: 8 }}>

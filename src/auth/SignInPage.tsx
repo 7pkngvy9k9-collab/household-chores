@@ -57,8 +57,9 @@ export function SignInPage() {
 
   return (
     <section className="setup card">
-      <h1>Household chores</h1>
-      <p className="sub">Sign in to keep your household list permanent across devices.</p>
+      <p className="eyebrow">Household</p>
+      <h1>Welcome back</h1>
+      <p className="sub">Sign in to keep tasks, shopping, and shared costs in one place.</p>
 
       <ErrorMessage message={error} />
       <SuccessMessage message={message} />

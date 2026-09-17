@@ -12,6 +12,7 @@ import { MembersPage } from "./household/MembersPage";
 import { OnboardingPage } from "./household/OnboardingPage";
 import { SettingsPage } from "./household/SettingsPage";
 import { AppLayout } from "./layout/AppLayout";
+import { CalendarPage } from "./calendar/CalendarPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { ShoppingPage } from "./shopping/ShoppingPage";
 
@@ -71,15 +72,7 @@ function SignedInRoutes() {
         <Route path="/tasks" element={<ChoresPage />} />
         <Route path="/shopping" element={<ShoppingPage />} />
         <Route path="/finances" element={<FinancesPage />} />
-        <Route
-          path="/calendar"
-          element={
-            <PlaceholderPage
-              title="Calendar"
-              body="No household events yet. Meetings, visitors, and garbage day will show up here."
-            />
-          }
-        />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route
           path="/noticeboard"
           element={

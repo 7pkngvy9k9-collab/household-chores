@@ -110,3 +110,27 @@ export async function deleteChore(id: string): Promise<void> {
   const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) throw error;
 }
+
+export type TaskCompletion = {
+  id: string;
+  taskId: string;
+  userId: string;
+  completedAt: string;
+};
+
+export async function fetchCompletions(taskIds: string[]): Promise<TaskCompletion[]> {
+  if (taskIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("task_completions")
+    .select("id, task_id, user_id, completed_at")
+    .in("task_id", taskIds)
+    .order("completed_at", { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  return data.map((row) => ({
+    id: row.id,
+    taskId: row.task_id,
+    userId: row.user_id,
+    completedAt: row.completed_at,
+  }));
+}

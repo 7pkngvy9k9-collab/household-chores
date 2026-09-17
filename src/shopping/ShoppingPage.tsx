@@ -67,6 +67,7 @@ export function ShoppingPage() {
     <section>
       <header className="page-head">
         <div>
+          <p className="eyebrow">{household.name}</p>
           <h1 className="brand">Shopping</h1>
           <p className="sub">Shared lists update live for everyone in the household.</p>
         </div>
