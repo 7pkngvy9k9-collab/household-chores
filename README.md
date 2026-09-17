@@ -37,10 +37,17 @@ Other scripts:
 
 ## Deployment
 
-`.github/workflows/deploy.yml` builds the app and publishes `dist/` on every push to
-`main`. This requires **Settings → Pages → Build and deployment → Source: GitHub
-Actions**; the old "Deploy from a branch" mode cannot serve this app because it now
-needs a build step.
+`.github/workflows/deploy.yml` builds the app and publishes `dist/` to the `gh-pages`
+branch (and as a GitHub Actions Pages artifact) on every push to `main`.
+
+If the live site is a blank white page, GitHub is serving the **source** `index.html`
+(`<script src="/src/main.tsx">`) instead of the Vite build. Fix that in
+**Settings → Pages → Build and deployment**:
+
+1. **Source: Deploy from a branch** → branch **`gh-pages`** / folder **`/`**, or
+2. **Source: GitHub Actions**
+
+Do not point Pages at `main` — that folder is the unbuilt Vite app.
 
 ## Supabase
 
