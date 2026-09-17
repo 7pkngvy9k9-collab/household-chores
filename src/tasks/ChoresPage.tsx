@@ -40,7 +40,11 @@ function ChoreSection({
       {chores.length === 0 ? (
         <p className="empty">{empty}</p>
       ) : (
-        chores.map((chore) => <ChoreCard key={chore.id} chore={chore} {...handlers} />)
+        <div className="checklist">
+          {chores.map((chore) => (
+            <ChoreCard key={chore.id} chore={chore} {...handlers} />
+          ))}
+        </div>
       )}
     </>
   );

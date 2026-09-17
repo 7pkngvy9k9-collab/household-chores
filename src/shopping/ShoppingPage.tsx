@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthProvider";
 import { ErrorMessage, SuccessMessage } from "../components/Feedback";
+import { ListRow } from "../components/ListRow";
 import { useHousehold } from "../household/HouseholdProvider";
 import { useShopping } from "./useShopping";
 
@@ -128,40 +129,39 @@ export function ShoppingPage() {
       {openItems.length === 0 ? (
         <p className="empty">No shopping items yet. Add the first item to your household shopping list.</p>
       ) : (
-        openItems.map((item) => (
-          <article className="card chore" key={item.id}>
-            <label className="chore-check">
-              <input type="checkbox" checked={false} onChange={() => void shopping.toggle(item)} />
-              <span className="sr-only">Purchased</span>
-            </label>
-            <div className="chore-body">
-              <h3>{item.name}</h3>
-              <div className="meta">
-                {item.quantity ? <span className="pill">{item.quantity}{item.unit ? ` ${item.unit}` : ""}</span> : null}
-                {item.note ? <span>{item.note}</span> : null}
-              </div>
-            </div>
-            <button className="danger" type="button" onClick={() => void shopping.remove(item.id)}>
-              Remove
-            </button>
-          </article>
-        ))
+        <div className="checklist">
+          {openItems.map((item) => (
+            <ListRow
+              key={item.id}
+              title={item.name}
+              meta={
+                [item.quantity ? `${item.quantity}${item.unit ? ` ${item.unit}` : ""}` : null, item.note]
+                  .filter(Boolean)
+                  .join(" · ") || undefined
+              }
+              checked={false}
+              completeLabel={`Mark ${item.name} purchased`}
+              onToggle={() => void shopping.toggle(item)}
+              onRemove={() => void shopping.remove(item.id)}
+            />
+          ))}
+        </div>
       )}
 
       {boughtItems.length > 0 ? (
         <>
           <h2 className="section-title">Purchased</h2>
-          {boughtItems.map((item) => (
-            <article className="card chore is-done" key={item.id}>
-              <label className="chore-check">
-                <input type="checkbox" checked onChange={() => void shopping.toggle(item)} />
-                <span className="sr-only">Purchased</span>
-              </label>
-              <div className="chore-body">
-                <h3>{item.name}</h3>
-              </div>
-            </article>
-          ))}
+          <div className="checklist">
+            {boughtItems.map((item) => (
+              <ListRow
+                key={item.id}
+                title={item.name}
+                checked
+                completeLabel={`Put ${item.name} back on the list`}
+                onToggle={() => void shopping.toggle(item)}
+              />
+            ))}
+          </div>
         </>
       ) : null}
 

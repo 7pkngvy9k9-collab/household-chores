@@ -1,3 +1,4 @@
+import { ListRow } from "../components/ListRow";
 import { currentHolder, isAssignedTo, isOverdue, scheduleLabel } from "./schedule";
 import type { Chore } from "./types";
 
@@ -20,45 +21,31 @@ export function ChoreCard({
 }: Props) {
   const holderId = currentHolder(chore);
   const mine = isAssignedTo(chore, currentMemberId);
+  const holder = holderId ? memberName(holderId) : "Anyone";
+  const meta = [
+    scheduleLabel(chore),
+    holder,
+    chore.kind === "repeating" && chore.rotate ? "Rotates" : null,
+    isOverdue(chore) ? "Overdue" : null,
+    chore.lastDoneBy ? `Last: ${memberName(chore.lastDoneBy)}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <article className={`card chore${chore.done ? " is-done" : ""}`}>
-      <label className="chore-check done-check" title="Done">
-        <input
-          type="checkbox"
-          checked={chore.done}
-          onChange={(event) =>
-            event.target.checked ? onComplete(chore.id) : onReopen(chore.id)
-          }
-        />
-        <span className="sr-only">Done</span>
-      </label>
-
-      <div className="chore-body">
-        <h3>{chore.title}</h3>
-        <div className="meta">
-          <span className="pill">{scheduleLabel(chore)}</span>
-          <span className={`pill${mine ? " mine" : ""}`}>
-            {holderId ? memberName(holderId) : "Anyone"}
-          </span>
-          {chore.kind === "repeating" && chore.rotate ? <span className="pill">Rotates</span> : null}
-          {isOverdue(chore) ? <span className="pill overdue">Overdue</span> : null}
-          {chore.lastDoneBy ? (
-            <span className="last">Last: {memberName(chore.lastDoneBy)}</span>
-          ) : null}
-        </div>
-      </div>
-
-      <label className="chore-check remove-check" title="Remove">
-        <input
-          type="checkbox"
-          checked={false}
-          onChange={() => {
-            if (window.confirm("Remove this chore?")) onRemove(chore.id);
-          }}
-        />
-        <span>Remove</span>
-      </label>
-    </article>
+    <ListRow
+      title={chore.title}
+      meta={
+        <span className={mine ? "is-mine" : undefined}>
+          {meta}
+        </span>
+      }
+      checked={chore.done}
+      completeLabel={chore.done ? `Reopen ${chore.title}` : `Mark ${chore.title} done`}
+      onToggle={(next) => (next ? onComplete(chore.id) : onReopen(chore.id))}
+      onRemove={() => {
+        if (window.confirm("Remove this chore?")) onRemove(chore.id);
+      }}
+    />
   );
 }

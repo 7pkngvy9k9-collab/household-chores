@@ -373,20 +373,176 @@ button:disabled {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 22px;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 16px;
 }
 
-.checklist .chore {
+.list-row,
+.chore {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
   margin: 0;
   border: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   box-shadow: none;
+  background: transparent;
 }
 
+.checklist .list-row:last-child,
 .checklist .chore:last-child {
   border-bottom: 0;
+}
+
+.list-row-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.list-row-title,
+.chore h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.list-row-meta,
+.list-row.is-done .list-row-title,
+.chore.is-done h3 {
+  color: var(--muted);
+}
+
+.list-row.is-done .list-row-title {
+  text-decoration: line-through;
+}
+
+.list-row-meta {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.list-row-meta .is-mine {
+  color: var(--sage-deep);
+}
+
+.complete-toggle {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--muted) 80%, var(--line));
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.complete-toggle svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.complete-toggle circle {
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+
+.complete-toggle path {
+  fill: none;
+  stroke: var(--on-primary);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  transition: stroke-dashoffset 180ms ease;
+}
+
+.complete-toggle.is-on {
+  color: var(--sage);
+}
+
+.complete-toggle.is-on circle {
+  fill: var(--sage);
+  stroke: var(--sage);
+}
+
+.complete-toggle.is-on path {
+  stroke-dashoffset: 0;
+}
+
+.complete-toggle:active {
+  transform: scale(0.9);
+}
+
+.row-menu {
+  position: relative;
+}
+
+.row-action {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.row-action:hover,
+.row-action[aria-expanded="true"] {
+  background: var(--pill);
+  color: var(--ink);
+}
+
+.row-action .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.row-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 8;
+  min-width: 132px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.row-menu-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--clay);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-weight: 650;
+}
+
+.row-menu-item:hover {
+  background: var(--clay-soft);
 }
 
 .composer-bar {
@@ -537,31 +693,8 @@ h2,
   margin-bottom: 12px;
 }
 
-.chore {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
-  align-items: center;
-  padding: 12px 12px;
-  margin-bottom: 8px;
-  border-radius: 16px;
-  box-shadow: none;
-}
-
-.chore.is-done h3 {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-
 .chore-body {
   min-width: 0;
-}
-
-.chore h3 {
-  margin: 0;
-  font-size: 0.98rem;
-  font-weight: 650;
-  line-height: 1.3;
 }
 
 .meta {
@@ -590,29 +723,7 @@ h2,
 }
 
 .chore-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  user-select: none;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.chore-check input {
-  width: 20px;
-  height: 20px;
-  margin: 0;
-  accent-color: var(--sage);
-  cursor: pointer;
-}
-
-.remove-check {
-  color: var(--clay);
-}
-
-.remove-check input {
-  accent-color: var(--clay);
+  display: none;
 }
 
 .sr-only {
@@ -902,14 +1013,10 @@ h2,
     grid-template-columns: 1fr 1fr;
   }
 
+  .list-row,
   .chore {
-    grid-template-columns: auto 1fr;
-    align-items: start;
-  }
-
-  .remove-check {
-    grid-column: 2;
-    justify-self: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
   }
 
   .who {
