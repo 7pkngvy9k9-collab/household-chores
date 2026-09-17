@@ -20,10 +20,6 @@ export class RenderErrorBoundary extends Component<
 > {
   state = { failed: false };
 
-  static override getDerivedStateFromError(): { failed: boolean } {
-    return { failed: true };
-  }
-
   override componentDidCatch(_error: Error, _info: ErrorInfo): void {
     this.setState({ failed: true });
   }
