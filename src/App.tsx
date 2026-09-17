@@ -20,7 +20,7 @@ import { ShoppingPage } from "./shopping/ShoppingPage";
 export function App() {
   const { user, loading } = useAuth();
 
-  if (loading) return <p className="empty">Loading…</p>;
+  if (loading) return <p className="empty boot">Loading…</p>;
 
   if (!user) {
     return (
@@ -41,7 +41,7 @@ export function App() {
 function SignedInRoutes() {
   const { loading, error, household } = useHousehold();
 
-  if (loading) return <p className="empty">Loading…</p>;
+  if (loading) return <p className="empty boot">Loading…</p>;
 
   if (error && !household) {
     return (
