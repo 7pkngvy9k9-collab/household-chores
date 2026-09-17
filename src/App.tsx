@@ -13,7 +13,8 @@ import { OnboardingPage } from "./household/OnboardingPage";
 import { SettingsPage } from "./household/SettingsPage";
 import { AppLayout } from "./layout/AppLayout";
 import { CalendarPage } from "./calendar/CalendarPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { NoticeboardPage } from "./noticeboard/NoticeboardPage";
+import { PollsPage } from "./polls/PollsPage";
 import { ShoppingPage } from "./shopping/ShoppingPage";
 
 export function App() {
@@ -73,15 +74,8 @@ function SignedInRoutes() {
         <Route path="/shopping" element={<ShoppingPage />} />
         <Route path="/finances" element={<FinancesPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
-        <Route
-          path="/noticeboard"
-          element={
-            <PlaceholderPage
-              title="Noticeboard"
-              body="No posts yet. Pin notes the household should see."
-            />
-          }
-        />
+        <Route path="/noticeboard" element={<NoticeboardPage />} />
+        <Route path="/polls" element={<PollsPage />} />
         <Route path="/members" element={<MembersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

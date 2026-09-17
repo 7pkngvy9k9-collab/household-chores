@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { ErrorMessage } from "../components/Feedback";
 import { useHousehold } from "../household/HouseholdProvider";
 import { formatMoney } from "../lib/money";
+import { supabase } from "../lib/supabase";
 import { suggestSettlements } from "./api";
 import { useFinances } from "./useFinances";
 
@@ -171,6 +172,117 @@ export function FinancesPage() {
           </article>
         ))
       )}
+
+      <BudgetAndReceipts currency={household.currency} householdId={household.id} paidBy={paidBy} />
     </section>
+  );
+}
+
+function BudgetAndReceipts({
+  currency,
+  householdId,
+  paidBy,
+}: {
+  currency: string;
+  householdId: string;
+  paidBy: string;
+}) {
+  const [budget, setBudget] = useState("");
+  const [receiptTitle, setReceiptTitle] = useState("");
+  const [receiptAmount, setReceiptAmount] = useState("");
+  const [receipts, setReceipts] = useState<{ id: string; title: string; amount: number }[]>([]);
+  const [savedBudget, setSavedBudget] = useState<number | null>(null);
+  const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
+
+  useEffect(() => {
+    void (async () => {
+      const [budgetRow, receiptRows] = await Promise.all([
+        supabase.from("budgets").select("*").eq("household_id", householdId).eq("month", month).maybeSingle(),
+        supabase.from("receipts").select("*").eq("household_id", householdId).order("created_at", { ascending: false }),
+      ]);
+      setSavedBudget(budgetRow.data ? Number(budgetRow.data.amount) : null);
+      setReceipts((receiptRows.data ?? []).map((row) => ({ id: row.id, title: row.title, amount: Number(row.amount) })));
+    })();
+  }, [householdId, month]);
+
+  return (
+    <>
+      <form
+        className="card grid"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const value = Number(budget);
+          if (!Number.isFinite(value) || value <= 0) return;
+          void supabase
+            .from("budgets")
+            .upsert({ household_id: householdId, month, amount: value }, { onConflict: "household_id,month" })
+            .then(() => setSavedBudget(value));
+        }}
+      >
+        <h2 className="section-title" style={{ margin: 0 }}>
+          Monthly budget
+        </h2>
+        <p className="sub">
+          {savedBudget === null ? "No budget set for this month." : `This month: ${formatMoney(savedBudget, currency)}`}
+        </p>
+        <label className="field">
+          <span>Amount ({currency})</span>
+          <input required inputMode="decimal" value={budget} onChange={(event) => setBudget(event.target.value)} />
+        </label>
+        <button className="primary" type="submit">
+          Save budget
+        </button>
+      </form>
+
+      <form
+        className="card grid"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const value = Number(receiptAmount);
+          if (!Number.isFinite(value) || value <= 0) return;
+          void supabase
+            .from("receipts")
+            .insert({
+              household_id: householdId,
+              title: receiptTitle.trim(),
+              amount: value,
+              paid_by: paidBy || null,
+              note: "Logged manually. Photo OCR is not enabled yet.",
+            })
+            .then(async () => {
+              setReceiptTitle("");
+              setReceiptAmount("");
+              const { data } = await supabase
+                .from("receipts")
+                .select("*")
+                .eq("household_id", householdId)
+                .order("created_at", { ascending: false });
+              setReceipts((data ?? []).map((row) => ({ id: row.id, title: row.title, amount: Number(row.amount) })));
+            });
+        }}
+      >
+        <h2 className="section-title" style={{ margin: 0 }}>
+          Receipt log
+        </h2>
+        <p className="sub">Store a receipt amount now. Camera OCR can plug in later.</p>
+        <label className="field">
+          <span>Title</span>
+          <input required value={receiptTitle} onChange={(event) => setReceiptTitle(event.target.value)} />
+        </label>
+        <label className="field">
+          <span>Amount ({currency})</span>
+          <input required inputMode="decimal" value={receiptAmount} onChange={(event) => setReceiptAmount(event.target.value)} />
+        </label>
+        <button className="primary" type="submit">
+          Add receipt
+        </button>
+      </form>
+      {receipts.map((row) => (
+        <article className="card" key={row.id}>
+          <h3>{row.title}</h3>
+          <p className="sub">{formatMoney(row.amount, currency)}</p>
+        </article>
+      ))}
+    </>
   );
 }

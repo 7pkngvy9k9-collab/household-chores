@@ -4,6 +4,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { Icon } from "../components/Icons";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { NotificationBell } from "../notifications/NotificationBell";
 import { useHousehold } from "../household/HouseholdProvider";
 import { MOBILE_PRIMARY_NAV, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from "../nav/items";
 
@@ -52,6 +53,7 @@ export function AppLayout() {
         <p className="nav-label">Manage</p>
         <NavList items={SECONDARY_NAV} />
         <div className="sidebar-foot">
+          <NotificationBell />
           <ThemeToggle />
           <button className="ghost" type="button" onClick={() => void signOut()}>
             Sign out

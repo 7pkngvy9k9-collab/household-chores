@@ -867,9 +867,37 @@ h2,
   font-weight: 650;
 }
 
-.cal-event.is-done {
-  opacity: 0.55;
-  text-decoration: line-through;
+.cal-event.is-away {
+  background: var(--clay-soft);
+  color: var(--banner-ink);
+}
+
+.notice-bell {
+  position: relative;
+}
+
+.notice-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  z-index: 20;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.notice-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 8px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
 }
 
 .cal-more {
