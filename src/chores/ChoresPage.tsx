@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AppShell } from "../components/AppShell";
+import { useHouseholdChores } from "./ChoresProvider";
 import { ErrorMessage } from "../components/Feedback";
 import { useHousehold } from "../household/HouseholdProvider";
 import { ChoreCard } from "./ChoreCard";
@@ -13,7 +13,6 @@ import {
 } from "./notifications";
 import { isAssignedTo, isDue, isUpcoming, isWaitingFor, todayISO } from "./schedule";
 import type { Chore } from "./types";
-import { useChores } from "./useChores";
 
 type CardHandlers = {
   currentMemberId: string | null;
@@ -47,11 +46,8 @@ function ChoreSection({
 }
 
 export function ChoresPage() {
-  const { household, members, currentMemberId, reload: reloadHousehold } = useHousehold();
-  const { chores, loading, error, reload, add, complete, reopen, remove } = useChores(
-    household?.id ?? null,
-    currentMemberId,
-  );
+  const { household, members, currentMemberId } = useHousehold();
+  const { chores, loading, error, add, complete, reopen, remove } = useHouseholdChores();
 
   const [mineOnly, setMineOnly] = useState(false);
   const [remindersOn, setRemindersOn] = useState(() => notificationsEnabled());
@@ -74,7 +70,6 @@ export function ChoresPage() {
       due: visible.filter((chore) => isDue(chore, today)),
       onDemand: visible.filter((chore) => chore.kind === "on_demand" && !chore.done),
       upcoming: visible.filter((chore) => isUpcoming(chore, today)),
-      // Completed one-off chores stay visible regardless of the filter.
       done: chores.filter((chore) => chore.done && chore.kind !== "repeating"),
       waiting: chores.filter((chore) => isWaitingFor(chore, currentMemberId, today)),
     };
@@ -99,11 +94,6 @@ export function ChoresPage() {
     notifyWaiting(currentMemberName, waitingCount);
   }, [loading, remindersOn, currentMemberName, waitingCount]);
 
-  const refresh = useCallback(() => {
-    void reloadHousehold();
-    void reload();
-  }, [reloadHousehold, reload]);
-
   async function enableReminders() {
     setRemindersOn(await requestNotifications());
   }
@@ -111,21 +101,20 @@ export function ChoresPage() {
   if (!household) return null;
 
   return (
-    <AppShell
-      title={household.name}
-      subtitle={
-        <>
-          Invite code: <strong>{household.inviteCode}</strong> · signed in as {currentMemberName}
-        </>
-      }
-      onRefresh={refresh}
-    >
+    <section>
+      <header className="page-head">
+        <div>
+          <h1 className="brand">Tasks</h1>
+          <p className="sub">Signed in as {currentMemberName}</p>
+        </div>
+      </header>
+
       <ErrorMessage message={error} />
 
       <div className={`banner${waitingCount ? "" : " ok"}`}>
         <span>
           {waitingCount
-            ? `${waitingCount} chore${waitingCount === 1 ? "" : "s"} waiting for you.`
+            ? `${waitingCount} task${waitingCount === 1 ? "" : "s"} waiting for you.`
             : "Nothing waiting for you right now."}
         </span>
         {remindersOn ? (
@@ -155,10 +144,10 @@ export function ChoresPage() {
       </div>
 
       {loading ? (
-        <p className="empty">Loading chores…</p>
+        <p className="empty">Loading tasks…</p>
       ) : chores.length === 0 ? (
         <p className="empty">
-          No chores yet. Add the first one your household needs to keep on top of.
+          No tasks yet. Add the first one your household needs to keep on top of.
         </p>
       ) : (
         <>
@@ -171,13 +160,13 @@ export function ChoresPage() {
           <ChoreSection
             title="On demand"
             chores={groups.onDemand}
-            empty="No open on-demand chores."
+            empty="No open on-demand tasks."
             handlers={handlers}
           />
           <ChoreSection
             title="Upcoming"
             chores={groups.upcoming}
-            empty="No upcoming chores."
+            empty="No upcoming tasks."
             handlers={handlers}
           />
           {groups.done.length > 0 ? (
@@ -187,6 +176,6 @@ export function ChoresPage() {
       )}
 
       <ChoreComposer members={members} onAdd={(chore) => void add(chore)} />
-    </AppShell>
+    </section>
   );
 }

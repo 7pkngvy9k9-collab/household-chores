@@ -3,9 +3,13 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider";
 import { SignInPage } from "./auth/SignInPage";
 import { ChoresPage } from "./chores/ChoresPage";
+import { ChoresProvider } from "./chores/ChoresProvider";
 import { ErrorMessage } from "./components/Feedback";
+import { DashboardPage } from "./dashboard/DashboardPage";
 import { HouseholdProvider, useHousehold } from "./household/HouseholdProvider";
 import { OnboardingPage } from "./household/OnboardingPage";
+import { AppLayout } from "./layout/AppLayout";
+import { PlaceholderPage } from "./pages/PlaceholderPage";
 
 export function App() {
   const { user, loading } = useAuth();
@@ -48,7 +52,76 @@ function SignedInRoutes() {
         path="/setup"
         element={household ? <Navigate to="/" replace /> : <OnboardingPage />}
       />
-      <Route path="/" element={household ? <ChoresPage /> : <Navigate to="/setup" replace />} />
+      <Route
+        element={
+          household ? (
+            <ChoresProvider>
+              <AppLayout />
+            </ChoresProvider>
+          ) : (
+            <Navigate to="/setup" replace />
+          )
+        }
+      >
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/tasks" element={<ChoresPage />} />
+        <Route
+          path="/shopping"
+          element={
+            <PlaceholderPage
+              title="Shopping"
+              body="No shopping items yet. Add the first item to your household shopping list."
+            />
+          }
+        />
+        <Route
+          path="/finances"
+          element={
+            <PlaceholderPage
+              title="Finances"
+              body="No expenses yet. Shared costs and balances will live here."
+            />
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <PlaceholderPage
+              title="Calendar"
+              body="No household events yet. Meetings, visitors, and garbage day will show up here."
+            />
+          }
+        />
+        <Route
+          path="/noticeboard"
+          element={
+            <PlaceholderPage
+              title="Noticeboard"
+              body="No posts yet. Pin notes the household should see."
+            />
+          }
+        />
+        <Route
+          path="/members"
+          element={
+            <PlaceholderPage
+              title="Members"
+              body="Household members and roles will be managed here."
+              actionLabel="Back to overview"
+              actionTo="/"
+            />
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PlaceholderPage
+              title="Settings"
+              body="Household name, invite code, and preferences will live here."
+            />
+          }
+        />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -5,7 +5,7 @@ import { deleteChore, fetchChores, insertChore, saveChore, setChoreDone } from "
 import { completedChore } from "./schedule";
 import type { Chore, NewChore } from "./types";
 
-type ChoresValue = {
+export type ChoresValue = {
   chores: Chore[];
   loading: boolean;
   error: string;
