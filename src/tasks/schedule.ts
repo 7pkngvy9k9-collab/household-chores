@@ -57,7 +57,18 @@ export function isWaitingFor(
 export function scheduleLabel(chore: Chore): string {
   if (chore.kind === "on_demand") return "On demand";
   if (chore.kind === "repeating") {
-    const cadence = chore.repeat === "daily" ? "Daily" : "Weekly";
+    const cadence =
+      chore.repeat === "daily"
+        ? chore.repeatInterval === 1
+          ? "Daily"
+          : `Every ${chore.repeatInterval} days`
+        : chore.repeat === "monthly"
+          ? chore.repeatInterval === 1
+            ? "Monthly"
+            : `Every ${chore.repeatInterval} months`
+          : chore.repeatInterval === 1
+            ? "Weekly"
+            : `Every ${chore.repeatInterval} weeks`;
     return `${cadence} · next ${chore.dueDate ?? "—"}`;
   }
   return `On ${chore.dueDate ?? "—"}`;
@@ -82,7 +93,14 @@ export function completedChore(
     ...chore,
     done: false,
     holderIndex: chore.rotate ? chore.holderIndex + 1 : chore.holderIndex,
-    dueDate: addDays(today, chore.repeat === "daily" ? 1 : 7),
+    dueDate: addDays(
+      today,
+      chore.repeat === "daily"
+        ? chore.repeatInterval
+        : chore.repeat === "weekly"
+          ? chore.repeatInterval * 7
+          : 30 * chore.repeatInterval,
+    ),
     lastDoneAt: completedAt,
     lastDoneBy: memberId,
   };

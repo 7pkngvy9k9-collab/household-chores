@@ -12,15 +12,22 @@ import { useAuth } from "../auth/AuthProvider";
 import { reportError } from "../lib/errors";
 import { supabase } from "../lib/supabase";
 
+export const MEMBER_ROLES = ["owner", "admin", "member"] as const;
+export type MemberRole = (typeof MEMBER_ROLES)[number];
+
 export type Member = {
   id: string;
   name: string;
+  role: MemberRole;
+  userId: string | null;
 };
 
 export type Household = {
   id: string;
   name: string;
   inviteCode: string;
+  currency: string;
+  timezone: string;
 };
 
 type HouseholdValue = {
@@ -28,12 +35,16 @@ type HouseholdValue = {
   error: string;
   household: Household | null;
   members: Member[];
-  /** The household_members row that belongs to the signed-in user. */
   currentMemberId: string | null;
+  currentRole: MemberRole | null;
   reload: () => Promise<void>;
 };
 
 const HouseholdContext = createContext<HouseholdValue | null>(null);
+
+function toRole(value: string): MemberRole {
+  return MEMBER_ROLES.find((role) => role === value) ?? "member";
+}
 
 export function HouseholdProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -63,7 +74,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
 
     const membership = await supabase
       .from("household_members")
-      .select("id, household_id, households(id, name, invite_code)")
+      .select("id, household_id, role, households(id, name, invite_code, currency, timezone)")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -76,7 +87,9 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     }
 
     const row = membership.data;
-    if (!row?.households) {
+    const nested = row?.households;
+    const house = Array.isArray(nested) ? nested[0] : nested;
+    if (!row || !house) {
       clear();
       setLoading(false);
       return;
@@ -84,7 +97,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
 
     const roster = await supabase
       .from("household_members")
-      .select("id, name")
+      .select("id, name, role, user_id")
       .eq("household_id", row.household_id)
       .order("created_at");
 
@@ -95,11 +108,20 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     }
 
     setHousehold({
-      id: row.households.id,
-      name: row.households.name,
-      inviteCode: row.households.invite_code,
+      id: house.id,
+      name: house.name,
+      inviteCode: house.invite_code,
+      currency: house.currency,
+      timezone: house.timezone,
     });
-    setMembers(roster.data);
+    setMembers(
+      roster.data.map((member) => ({
+        id: member.id,
+        name: member.name,
+        role: toRole(member.role),
+        userId: member.user_id,
+      })),
+    );
     setCurrentMemberId(row.id);
     setLoading(false);
   }, [userId, clear]);
@@ -108,9 +130,11 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     void load();
   }, [load]);
 
+  const currentRole = members.find((member) => member.id === currentMemberId)?.role ?? null;
+
   const value = useMemo<HouseholdValue>(
-    () => ({ loading, error, household, members, currentMemberId, reload: load }),
-    [loading, error, household, members, currentMemberId, load],
+    () => ({ loading, error, household, members, currentMemberId, currentRole, reload: load }),
+    [loading, error, household, members, currentMemberId, currentRole, load],
   );
 
   return <HouseholdContext.Provider value={value}>{children}</HouseholdContext.Provider>;

@@ -16,6 +16,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<ChoreKind>("repeating");
   const [repeat, setRepeat] = useState<ChoreRepeat>("weekly");
+  const [repeatInterval, setRepeatInterval] = useState(1);
   const [dueDate, setDueDate] = useState(todayISO());
   const [rotate, setRotate] = useState(true);
   const [holderIds, setHolderIds] = useState<string[]>([]);
@@ -24,6 +25,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
     setTitle("");
     setKind("repeating");
     setRepeat("weekly");
+    setRepeatInterval(1);
     setDueDate(todayISO());
     setRotate(true);
     setHolderIds(members.map((member) => member.id));
@@ -42,6 +44,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
       title: title.trim(),
       kind,
       repeat: kind === "repeating" ? repeat : "none",
+      repeatInterval: kind === "repeating" ? Math.max(1, repeatInterval) : 1,
       dueDate: kind === "on_demand" ? null : dueDate || todayISO(),
       // Rotation only means something with more than one candidate.
       rotate: kind === "repeating" && rotate && holderIds.length > 1,
@@ -90,16 +93,28 @@ export function ChoreComposer({ members, onAdd }: Props) {
                 </label>
 
                 {kind === "repeating" ? (
-                  <label className="field">
-                    <span>Repeat</span>
-                    <select
-                      value={repeat}
-                      onChange={(event) => setRepeat(event.target.value as ChoreRepeat)}
-                    >
-                      <option value="weekly">Weekly</option>
-                      <option value="daily">Daily</option>
-                    </select>
-                  </label>
+                  <>
+                    <label className="field">
+                      <span>Repeat</span>
+                      <select
+                        value={repeat}
+                        onChange={(event) => setRepeat(event.target.value as ChoreRepeat)}
+                      >
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </label>
+                    <label className="field">
+                      <span>Every</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={repeatInterval}
+                        onChange={(event) => setRepeatInterval(Number(event.target.value) || 1)}
+                      />
+                    </label>
+                  </>
                 ) : null}
 
                 {kind === "on_demand" ? null : (

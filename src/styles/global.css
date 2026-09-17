@@ -565,6 +565,25 @@ html.theme-dark .chip.active {
   flex: 1;
 }
 
+.member-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 @media (max-width: 860px) {
   .app-frame {
     grid-template-columns: 1fr;

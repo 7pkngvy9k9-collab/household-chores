@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { reportError } from "../lib/errors";
-import { deleteChore, fetchChores, insertChore, saveChore, setChoreDone } from "./api";
+import { useRealtimeTable } from "../lib/realtime";
+import { completeTask, deleteChore, fetchChores, insertChore, setChoreDone } from "./api";
 import { completedChore } from "./schedule";
 import type { Chore, NewChore } from "./types";
 
@@ -36,7 +37,7 @@ export function useChores(
     try {
       setChores(await fetchChores(householdId));
     } catch (cause) {
-      setError(reportError(cause, "We could not load the chores. Please try again."));
+      setError(reportError(cause, "We could not load the tasks. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -46,6 +47,13 @@ export function useChores(
     void reload();
   }, [reload]);
 
+  useRealtimeTable(
+    "tasks",
+    "tasks",
+    householdId ? `household_id=eq.${householdId}` : undefined,
+    reload,
+  );
+
   const add = useCallback(
     async (input: NewChore) => {
       if (!householdId) return;
@@ -54,14 +62,12 @@ export function useChores(
         const created = await insertChore(householdId, input);
         setChores((current) => [created, ...current]);
       } catch (cause) {
-        setError(reportError(cause, "The chore could not be added. Please try again."));
+        setError(reportError(cause, "The task could not be added. Please try again."));
       }
     },
     [householdId],
   );
 
-  // The three mutations below update the list first and roll back if the write
-  // fails, so ticking a chore feels immediate.
   const complete = useCallback(
     async (id: string) => {
       const target = chores.find((chore) => chore.id === id);
@@ -73,10 +79,11 @@ export function useChores(
       setChores(previous.map((chore) => (chore.id === id ? next : chore)));
 
       try {
-        await saveChore(next);
+        const saved = await completeTask(id);
+        setChores((current) => current.map((chore) => (chore.id === id ? saved : chore)));
       } catch (cause) {
         setChores(previous);
-        setError(reportError(cause, "The chore could not be completed. Please try again."));
+        setError(reportError(cause, "The task could not be completed. Please try again."));
       }
     },
     [chores, currentMemberId],
@@ -92,7 +99,7 @@ export function useChores(
         await setChoreDone(id, false);
       } catch (cause) {
         setChores(previous);
-        setError(reportError(cause, "The chore could not be reopened. Please try again."));
+        setError(reportError(cause, "The task could not be reopened. Please try again."));
       }
     },
     [chores],
@@ -108,7 +115,7 @@ export function useChores(
         await deleteChore(id);
       } catch (cause) {
         setChores(previous);
-        setError(reportError(cause, "The chore could not be removed. Please try again."));
+        setError(reportError(cause, "The task could not be removed. Please try again."));
       }
     },
     [chores],

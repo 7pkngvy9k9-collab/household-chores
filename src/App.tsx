@@ -6,10 +6,14 @@ import { ChoresPage } from "./tasks/ChoresPage";
 import { ChoresProvider } from "./tasks/ChoresProvider";
 import { ErrorMessage } from "./components/Feedback";
 import { DashboardPage } from "./dashboard/DashboardPage";
+import { FinancesPage } from "./finance/FinancesPage";
 import { HouseholdProvider, useHousehold } from "./household/HouseholdProvider";
+import { MembersPage } from "./household/MembersPage";
 import { OnboardingPage } from "./household/OnboardingPage";
+import { SettingsPage } from "./household/SettingsPage";
 import { AppLayout } from "./layout/AppLayout";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ShoppingPage } from "./shopping/ShoppingPage";
 
 export function App() {
   const { user, loading } = useAuth();
@@ -65,24 +69,8 @@ function SignedInRoutes() {
       >
         <Route path="/" element={<DashboardPage />} />
         <Route path="/tasks" element={<ChoresPage />} />
-        <Route
-          path="/shopping"
-          element={
-            <PlaceholderPage
-              title="Shopping"
-              body="No shopping items yet. Add the first item to your household shopping list."
-            />
-          }
-        />
-        <Route
-          path="/finances"
-          element={
-            <PlaceholderPage
-              title="Finances"
-              body="No expenses yet. Shared costs and balances will live here."
-            />
-          }
-        />
+        <Route path="/shopping" element={<ShoppingPage />} />
+        <Route path="/finances" element={<FinancesPage />} />
         <Route
           path="/calendar"
           element={
@@ -101,26 +89,8 @@ function SignedInRoutes() {
             />
           }
         />
-        <Route
-          path="/members"
-          element={
-            <PlaceholderPage
-              title="Members"
-              body="Household members and roles will be managed here."
-              actionLabel="Back to overview"
-              actionTo="/"
-            />
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <PlaceholderPage
-              title="Settings"
-              body="Household name, invite code, and preferences will live here."
-            />
-          }
-        />
+        <Route path="/members" element={<MembersPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

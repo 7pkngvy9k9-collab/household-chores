@@ -25,6 +25,7 @@ function mapChore(row: Tables<"tasks">): Chore {
     title: row.title,
     kind: toKind(row.kind),
     repeat: toRepeat(row.repeat),
+    repeatInterval: row.repeat_interval,
     dueDate: row.due_date,
     rotate: row.rotate,
     holderIds: row.holder_ids,
@@ -54,6 +55,7 @@ export async function insertChore(householdId: string, chore: NewChore): Promise
       title: chore.title,
       kind: chore.kind,
       repeat: chore.repeat,
+      repeat_interval: chore.repeatInterval,
       due_date: chore.dueDate,
       rotate: chore.rotate,
       holder_ids: chore.holderIds,
@@ -67,12 +69,20 @@ export async function insertChore(householdId: string, chore: NewChore): Promise
   return mapChore(data);
 }
 
+export async function completeTask(id: string): Promise<Chore> {
+  const { data, error } = await supabase.rpc("complete_task", { p_task_id: id });
+  if (error) throw error;
+  if (!data) throw new Error("Task was not returned");
+  return mapChore(data);
+}
+
 export async function saveChore(chore: Chore): Promise<void> {
   const { error } = await supabase
     .from("tasks")
     .update({
       kind: chore.kind,
       repeat: chore.repeat,
+      repeat_interval: chore.repeatInterval,
       due_date: chore.dueDate,
       rotate: chore.rotate,
       holder_ids: chore.holderIds,
