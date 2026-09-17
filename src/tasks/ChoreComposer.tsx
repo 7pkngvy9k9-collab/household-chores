@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 
 import type { Member } from "../household/HouseholdProvider";
+import { useI18n } from "../i18n/LocaleProvider";
 import { todayISO } from "./schedule";
 import type { ChoreKind, ChoreRepeat, NewChore } from "./types";
 
@@ -12,6 +13,7 @@ type Props = {
 const FORM_ID = "chore-form";
 
 export function ChoreComposer({ members, onAdd }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<ChoreKind>("repeating");
@@ -57,23 +59,23 @@ export function ChoreComposer({ members, onAdd }: Props) {
     <div className={`composer-dock${open ? " open" : ""}`}>
       <div className="composer-inner">
         {open ? (
-          <section className="card composer-sheet" aria-label="Add a chore">
+            <section className="card composer-sheet" aria-label={t("tasks.addAria")}>
             <div className="composer-head">
               <h2 className="section-title" style={{ margin: 0 }}>
-                Add a chore
+                {t("tasks.add")}
               </h2>
               <button className="ghost" type="button" onClick={() => setOpen(false)}>
-                Close
+                {t("common.close")}
               </button>
             </div>
 
             <form id={FORM_ID} className="grid" onSubmit={handleSubmit}>
               <label className="field">
-                <span>What needs doing?</span>
+                <span>{t("tasks.what")}</span>
                 <input
                   required
                   autoFocus
-                  placeholder="Take out recycling"
+                  placeholder={t("tasks.placeholder")}
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                 />
@@ -81,32 +83,32 @@ export function ChoreComposer({ members, onAdd }: Props) {
 
               <div className="row">
                 <label className="field">
-                  <span>When</span>
+                  <span>{t("tasks.when")}</span>
                   <select
                     value={kind}
                     onChange={(event) => setKind(event.target.value as ChoreKind)}
                   >
-                    <option value="repeating">Repeating</option>
-                    <option value="dated">On a date</option>
-                    <option value="on_demand">On demand</option>
+                    <option value="repeating">{t("tasks.repeating")}</option>
+                    <option value="dated">{t("tasks.dated")}</option>
+                    <option value="on_demand">{t("tasks.onDemand")}</option>
                   </select>
                 </label>
 
                 {kind === "repeating" ? (
                   <>
                     <label className="field">
-                      <span>Repeat</span>
+                      <span>{t("tasks.repeat")}</span>
                       <select
                         value={repeat}
                         onChange={(event) => setRepeat(event.target.value as ChoreRepeat)}
                       >
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
+                        <option value="daily">{t("tasks.daily")}</option>
+                        <option value="weekly">{t("tasks.weekly")}</option>
+                        <option value="monthly">{t("tasks.monthly")}</option>
                       </select>
                     </label>
                     <label className="field">
-                      <span>Every</span>
+                      <span>{t("tasks.every")}</span>
                       <input
                         type="number"
                         min={1}
@@ -119,7 +121,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
 
                 {kind === "on_demand" ? null : (
                   <label className="field">
-                    <span>First / due date</span>
+                    <span>{t("tasks.firstDue")}</span>
                     <input
                       type="date"
                       value={dueDate}
@@ -130,7 +132,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
               </div>
 
               <div className="field">
-                <span>Who does it?</span>
+                <span>{t("tasks.who")}</span>
                 <div className="members">
                   {members.map((member) => (
                     <label key={member.id}>
@@ -152,7 +154,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
                     checked={rotate}
                     onChange={(event) => setRotate(event.target.checked)}
                   />
-                  Alternate between selected people after each completion
+                  {t("tasks.rotate")}
                 </label>
               ) : null}
             </form>
@@ -165,7 +167,7 @@ export function ChoreComposer({ members, onAdd }: Props) {
           form={open ? FORM_ID : undefined}
           onClick={open ? undefined : openSheet}
         >
-          Add a chore
+          {t("tasks.add")}
         </button>
       </div>
     </div>

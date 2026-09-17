@@ -10,5 +10,6 @@ Follow `design/philosophy.md` and the Schloss mockups. Accent is teal `#1DB8A6` 
 - Keep tabs **Tasks, Shopping, Pinboard, Finances**. Extra tools stay in the household sheet.
 - Pinboard = notices, not chat. No leaderboard home.
 - List complete controls stay **circular** (`.complete-toggle`). Square boxes only inside member chips/forms.
+- Shopping aisle icons are **16px line glyphs** in the category header and row, not illustrated tiles.
 - Primary actions are **pill** buttons. Active chips and nav use sage fill/tint.
 - Do not restyle toward google.com or mint-game mascots unless Sascha asks.

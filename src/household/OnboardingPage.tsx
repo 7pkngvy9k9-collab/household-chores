@@ -3,6 +3,8 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { ErrorMessage } from "../components/Feedback";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { LanguageToggle } from "../components/LanguageToggle";
+import { useI18n } from "../i18n/LocaleProvider";
 import { reportError } from "../lib/errors";
 import { supabase } from "../lib/supabase";
 import { useHousehold } from "./HouseholdProvider";
@@ -16,6 +18,7 @@ type Seat = {
 export function OnboardingPage() {
   const { user, signOut } = useAuth();
   const { reload } = useHousehold();
+  const { t } = useI18n();
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -113,32 +116,32 @@ export function OnboardingPage() {
 
   return (
     <section className="setup">
-      <h1>Create a household</h1>
+      <h1>{t("setup.heading")}</h1>
       <p className="sub">{user?.email ?? ""}</p>
 
       <ErrorMessage message={error} />
 
       <form className="grid" onSubmit={createHousehold}>
         <h2 className="section-title" style={{ margin: 0 }}>
-          Create
+          {t("setup.create")}
         </h2>
         <label className="field">
-          <span>Household name</span>
+          <span>{t("setup.householdName")}</span>
           <input
             required
-            placeholder="Our place"
+            placeholder={t("setup.householdPlaceholder")}
             value={householdName}
             onChange={(event) => setHouseholdName(event.target.value)}
           />
         </label>
 
         <div>
-          <span className="sub">People in the household</span>
+          <span className="sub">{t("setup.people")}</span>
           {memberNames.map((name, index) => (
             <div className="member-row" key={index}>
               <input
                 required={index < 2}
-                placeholder={index === 0 ? "Your name" : "Name"}
+                placeholder={index === 0 ? t("setup.yourName") : t("common.name")}
                 value={name}
                 onChange={(event) => setMemberName(index, event.target.value)}
               />
@@ -149,12 +152,12 @@ export function OnboardingPage() {
             className="ghost"
             onClick={() => setMemberNames((current) => [...current, ""])}
           >
-            Add another person
+            {t("setup.addPerson")}
           </button>
         </div>
 
         <button className="primary" type="submit" disabled={busy}>
-          Create household
+          {t("setup.createHousehold")}
         </button>
       </form>
 
@@ -162,10 +165,10 @@ export function OnboardingPage() {
 
       <form className="grid" onSubmit={lookupHousehold}>
         <h2 className="section-title" style={{ margin: 0 }}>
-          Join
+          {t("setup.join")}
         </h2>
         <label className="field">
-          <span>Invite code</span>
+          <span>{t("setup.inviteCode")}</span>
           <input
             required
             placeholder="AB12CD34"
@@ -174,17 +177,17 @@ export function OnboardingPage() {
           />
         </label>
         <button className="ghost" type="submit" disabled={busy}>
-          Look up household
+          {t("setup.lookup")}
         </button>
       </form>
 
       {seats.length > 0 ? (
         <form className="grid" onSubmit={claimSeat}>
           <p className="sub">
-            Join <strong>{joinHouseholdName}</strong> as:
+            {t("setup.joinAs", { name: joinHouseholdName ?? "" })}
           </p>
           <label className="field">
-            <span>Your seat</span>
+            <span>{t("setup.yourSeat")}</span>
             <select
               required
               value={selectedSeat}
@@ -193,21 +196,22 @@ export function OnboardingPage() {
               {seats.map((seat) => (
                 <option key={seat.id} value={seat.id} disabled={seat.claimed}>
                   {seat.name}
-                  {seat.claimed ? " (taken)" : ""}
+                  {seat.claimed ? ` ${t("setup.taken")}` : ""}
                 </option>
               ))}
             </select>
           </label>
           <button className="primary" type="submit" disabled={busy}>
-            Join household
+            {t("setup.joinHousehold")}
           </button>
         </form>
       ) : null}
 
       <button className="ghost" type="button" onClick={() => void signOut()}>
-        Sign out
+        {t("common.signOut")}
       </button>
       <div className="theme-slot">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
     </section>

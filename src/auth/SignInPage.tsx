@@ -2,12 +2,15 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { ErrorMessage, SuccessMessage } from "../components/Feedback";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { LanguageToggle } from "../components/LanguageToggle";
+import { useI18n } from "../i18n/LocaleProvider";
 import { siteUrl } from "../lib/config";
 import { reportError } from "../lib/errors";
 import { supabase } from "../lib/supabase";
 
 export function SignInPage() {
   const formRef = useRef<HTMLFormElement>(null);
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -36,7 +39,7 @@ export function SignInPage() {
     }
 
     if (!result.data.session) {
-      setMessage("Account created. Confirm it from the email we sent, then sign in.");
+      setMessage(t("auth.created"));
       setBusy(false);
       return;
     }
@@ -60,47 +63,48 @@ export function SignInPage() {
       <div className="auth-mark" aria-hidden="true">
         H
       </div>
-      <h1>Household</h1>
-      <p className="sub">Shared chores, shopping, pinboard, finances</p>
+      <h1>{t("auth.brand")}</h1>
+      <p className="sub">{t("auth.sub")}</p>
 
       <ErrorMessage message={error} />
       <SuccessMessage message={message} />
 
       <form ref={formRef} className="grid" onSubmit={handleSubmit}>
         <label className="field">
-          <span>Email</span>
+          <span>{t("common.email")}</span>
           <input
             name="email"
             type="email"
             required
             autoComplete="email"
-            placeholder="Email"
+            placeholder={t("common.email")}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
         </label>
         <label className="field">
-          <span>Password</span>
+          <span>{t("common.password")}</span>
           <input
             name="password"
             type="password"
             required
             minLength={6}
             autoComplete="current-password"
-            placeholder="Password"
+            placeholder={t("common.password")}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
         </label>
         <button className="primary" type="submit" disabled={busy}>
-          {busy ? "Working…" : "Sign in"}
+          {busy ? t("common.working") : t("auth.signIn")}
         </button>
         <button className="linkish" type="button" disabled={busy} onClick={handleSignUp}>
-          Create household or join with invite code
+          {t("auth.createJoin")}
         </button>
       </form>
 
       <div className="theme-slot">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
     </section>

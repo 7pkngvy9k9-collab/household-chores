@@ -12,6 +12,7 @@ export type ShoppingItem = {
   name: string;
   quantity: number | null;
   unit: string | null;
+  category: string | null;
   note: string | null;
   completedAt: string | null;
 };
@@ -28,6 +29,7 @@ function mapItem(row: Tables<"shopping_items">): ShoppingItem {
     quantity: row.quantity,
     unit: row.unit,
     note: row.note,
+    category: row.category,
     completedAt: row.completed_at,
   };
 }
@@ -68,6 +70,7 @@ export async function addShoppingItem(
   name: string,
   quantity: number | null,
   unit: string | null,
+  category: string | null,
 ): Promise<ShoppingItem> {
   const { data, error } = await supabase
     .from("shopping_items")
@@ -76,6 +79,7 @@ export async function addShoppingItem(
       name,
       quantity,
       unit,
+      category,
     })
     .select("*")
     .single();

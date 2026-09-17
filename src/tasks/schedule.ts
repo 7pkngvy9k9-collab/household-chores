@@ -1,3 +1,4 @@
+import type { Translate } from "../i18n/LocaleProvider";
 import type { Chore } from "./types";
 
 export function toISODate(date: Date): string {
@@ -54,24 +55,24 @@ export function isWaitingFor(
   return isDue(chore, today);
 }
 
-export function scheduleLabel(chore: Chore): string {
-  if (chore.kind === "on_demand") return "On demand";
+export function scheduleLabel(chore: Chore, t: Translate): string {
+  if (chore.kind === "on_demand") return t("tasks.onDemand");
   if (chore.kind === "repeating") {
     const cadence =
       chore.repeat === "daily"
         ? chore.repeatInterval === 1
-          ? "Daily"
-          : `Every ${chore.repeatInterval} days`
+          ? t("tasks.daily")
+          : t("tasks.everyDays", { count: chore.repeatInterval })
         : chore.repeat === "monthly"
           ? chore.repeatInterval === 1
-            ? "Monthly"
-            : `Every ${chore.repeatInterval} months`
+            ? t("tasks.monthly")
+            : t("tasks.everyMonths", { count: chore.repeatInterval })
           : chore.repeatInterval === 1
-            ? "Weekly"
-            : `Every ${chore.repeatInterval} weeks`;
-    return `${cadence} · next ${chore.dueDate ?? "—"}`;
+            ? t("tasks.weekly")
+            : t("tasks.everyWeeks", { count: chore.repeatInterval });
+    return t("tasks.next", { cadence, date: chore.dueDate ?? "—" });
   }
-  return `On ${chore.dueDate ?? "—"}`;
+  return t("tasks.onDate", { date: chore.dueDate ?? "—" });
 }
 
 /**

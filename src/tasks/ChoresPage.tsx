@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHouseholdChores } from "./ChoresProvider";
 import { ErrorMessage } from "../components/Feedback";
 import { useHousehold } from "../household/HouseholdProvider";
+import { useI18n } from "../i18n/LocaleProvider";
 import { fetchCompletions, type TaskCompletion } from "./api";
 import { ChoreCard } from "./ChoreCard";
 import { ChoreComposer } from "./ChoreComposer";
@@ -52,6 +53,7 @@ function ChoreSection({
 
 export function ChoresPage() {
   const { household, members, currentMemberId } = useHousehold();
+  const { t } = useI18n();
   const { chores, loading, error, add, complete, reopen, remove } = useHouseholdChores();
 
   const [mineOnly, setMineOnly] = useState(false);
@@ -129,7 +131,7 @@ export function ChoresPage() {
     <section>
       <header className="page-head">
         <div>
-          <h1 className="brand">Tasks</h1>
+          <h1 className="brand">{t("tasks.title")}</h1>
         </div>
       </header>
 
@@ -138,14 +140,14 @@ export function ChoresPage() {
       <div className={`banner${waitingCount ? "" : " ok"}`}>
         <span>
           {waitingCount
-            ? `${waitingCount} task${waitingCount === 1 ? "" : "s"} waiting for you.`
-            : "Nothing waiting for you right now."}
+            ? t(waitingCount === 1 ? "tasks.waitingOne" : "tasks.waitingMany", { count: waitingCount })
+            : t("tasks.waitingNone")}
         </span>
         {remindersOn ? (
-          <span>Reminders on</span>
+          <span>{t("tasks.remindersOn")}</span>
         ) : supportsNotifications() ? (
           <button className="ghost" type="button" onClick={() => void enableReminders()}>
-            Enable reminders
+            {t("tasks.enableReminders")}
           </button>
         ) : null}
       </div>
@@ -156,54 +158,52 @@ export function ChoresPage() {
           type="button"
           onClick={() => setMineOnly(false)}
         >
-          Everyone
+          {t("tasks.everyone")}
         </button>
         <button
           className={`chip${mineOnly ? " active" : ""}`}
           type="button"
           onClick={() => setMineOnly(true)}
         >
-          My turn
+          {t("tasks.myTurn")}
         </button>
       </div>
 
       {loading ? (
-        <p className="empty">Loading tasks…</p>
+        <p className="empty">{t("tasks.loading")}</p>
       ) : chores.length === 0 ? (
-        <p className="empty">
-          No tasks yet. Add the first one your household needs to keep on top of.
-        </p>
+        <p className="empty">{t("tasks.empty")}</p>
       ) : (
         <>
           <ChoreSection
-            title="Due now"
+            title={t("tasks.dueNow")}
             chores={groups.due}
-            empty="Nothing due."
+            empty={t("tasks.nothingDue")}
             handlers={handlers}
           />
           <ChoreSection
-            title="On demand"
+            title={t("tasks.onDemand")}
             chores={groups.onDemand}
-            empty="No open on-demand tasks."
+            empty={t("tasks.noOnDemand")}
             handlers={handlers}
           />
           <ChoreSection
-            title="Upcoming"
+            title={t("tasks.upcoming")}
             chores={groups.upcoming}
-            empty="No upcoming tasks."
+            empty={t("tasks.noUpcoming")}
             handlers={handlers}
           />
           {groups.done.length > 0 ? (
-            <ChoreSection title="Completed" chores={groups.done} empty="" handlers={handlers} />
+            <ChoreSection title={t("tasks.completed")} chores={groups.done} empty="" handlers={handlers} />
           ) : null}
           {completions.length > 0 ? (
             <>
-              <h2 className="section-title">Recent completions</h2>
+              <h2 className="section-title">{t("tasks.recent")}</h2>
               <ul className="dash-list card">
                 {completions.map((row) => {
                   const task = chores.find((chore) => chore.id === row.taskId);
                   const who =
-                    members.find((member) => member.userId === row.userId)?.name ?? "Someone";
+                    members.find((member) => member.userId === row.userId)?.name ?? t("common.someone");
                   return (
                     <li key={row.id}>
                       <strong>{task?.title ?? "Task"}</strong>

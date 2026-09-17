@@ -4,13 +4,17 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { ErrorMessage, SuccessMessage } from "../components/Feedback";
 import { ListRow } from "../components/ListRow";
+import { Icon } from "../components/Icons";
 import { useHousehold } from "../household/HouseholdProvider";
+import { useI18n } from "../i18n/LocaleProvider";
+import { groupByCategory } from "./categories";
 import { useShopping } from "./useShopping";
 
 export function ShoppingPage() {
   const { user } = useAuth();
   const { household, members, currentMemberId } = useHousehold();
   const shopping = useShopping(household?.id ?? null, user?.id ?? null);
+  const { t } = useI18n();
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -58,7 +62,7 @@ export function ShoppingPage() {
     try {
       await shopping.convert(currentListName, value, paidBy, participants);
       setAmount("");
-      setMessage("Recorded as an expense.");
+      setMessage(t("shopping.recorded"));
     } catch {
       // Error is shown by the shopping hook.
     }
@@ -68,14 +72,14 @@ export function ShoppingPage() {
     <section>
       <header className="page-head">
         <div>
-          <h1 className="brand">Shopping</h1>
+          <h1 className="brand">{t("shopping.title")}</h1>
         </div>
       </header>
 
       <ErrorMessage message={shopping.error} />
       <SuccessMessage message={message} />
 
-      {shopping.loading ? <p className="empty">Loading shopping lists…</p> : null}
+      {shopping.loading ? <p className="empty">{t("shopping.loading")}</p> : null}
 
       <div className="filters">
         {shopping.lists.map((list) => (
@@ -92,70 +96,79 @@ export function ShoppingPage() {
 
       <form className="row" onSubmit={(event) => void addList(event)}>
         <label className="field">
-          <span>New list</span>
-          <input placeholder="Drugstore" value={listName} onChange={(event) => setListName(event.target.value)} />
+          <span>{t("shopping.newList")}</span>
+          <input placeholder={t("shopping.drugstore")} value={listName} onChange={(event) => setListName(event.target.value)} />
         </label>
         <button className="ghost" type="submit" disabled={!listName.trim()}>
-          Add list
+          {t("shopping.addList")}
         </button>
       </form>
 
       <form className="card grid" onSubmit={(event) => void addItem(event)}>
         <h2 className="section-title" style={{ margin: 0 }}>
-          Add item
+          {t("shopping.addItem")}
         </h2>
         <label className="field">
-          <span>Item</span>
-          <input required placeholder="Milk" value={name} onChange={(event) => setName(event.target.value)} />
+          <span>{t("shopping.item")}</span>
+          <input required placeholder={t("shopping.milk")} value={name} onChange={(event) => setName(event.target.value)} />
         </label>
         <div className="row">
           <label className="field">
-            <span>Quantity</span>
+            <span>{t("shopping.quantity")}</span>
             <input inputMode="decimal" value={quantity} onChange={(event) => setQuantity(event.target.value)} />
           </label>
           <label className="field">
-            <span>Unit</span>
+            <span>{t("shopping.unit")}</span>
             <input placeholder="l" value={unit} onChange={(event) => setUnit(event.target.value)} />
           </label>
         </div>
         <button className="primary" type="submit">
-          Add item
+          {t("shopping.addItem")}
         </button>
       </form>
 
-      <h2 className="section-title">To buy</h2>
+      <h2 className="section-title">{t("shopping.toBuy")}</h2>
       {openItems.length === 0 ? (
-        <p className="empty">No shopping items yet. Add the first item to your household shopping list.</p>
+        <p className="empty">{t("shopping.empty")}</p>
       ) : (
         <div className="checklist">
-          {openItems.map((item) => (
-            <ListRow
-              key={item.id}
-              title={item.name}
-              meta={
-                [item.quantity ? `${item.quantity}${item.unit ? ` ${item.unit}` : ""}` : null, item.note]
-                  .filter(Boolean)
-                  .join(" · ") || undefined
-              }
-              checked={false}
-              completeLabel={`Mark ${item.name} purchased`}
-              onToggle={() => void shopping.toggle(item)}
-              onRemove={() => void shopping.remove(item.id)}
-            />
+          {groupByCategory(openItems).map((group) => (
+            <div key={group.id}>
+              <p className="shop-cat">
+                <Icon name={group.icon} className="icon shop-cat-icon" />
+                {t(`shopping.cat.${group.id}`)}
+              </p>
+              {group.items.map((item) => (
+                <ListRow
+                  key={item.id}
+                  title={item.name}
+                  glyph={group.icon}
+                  meta={
+                    [item.quantity ? `${item.quantity}${item.unit ? ` ${item.unit}` : ""}` : null, item.note]
+                      .filter(Boolean)
+                      .join(" · ") || undefined
+                  }
+                  checked={false}
+                  completeLabel={t("shopping.markBought", { name: item.name })}
+                  onToggle={() => void shopping.toggle(item)}
+                  onRemove={() => void shopping.remove(item.id)}
+                />
+              ))}
+            </div>
           ))}
         </div>
       )}
 
       {boughtItems.length > 0 ? (
         <>
-          <h2 className="section-title">Bought</h2>
+          <h2 className="section-title">{t("shopping.bought")}</h2>
           <div className="checklist">
             {boughtItems.map((item) => (
               <ListRow
                 key={item.id}
                 title={item.name}
                 checked
-                completeLabel={`Put ${item.name} back on the list`}
+                completeLabel={t("shopping.putBack", { name: item.name })}
                 onToggle={() => void shopping.toggle(item)}
               />
             ))}
@@ -165,15 +178,15 @@ export function ShoppingPage() {
 
       <form className="card grid" onSubmit={(event) => void convert(event)}>
           <h2 className="section-title" style={{ margin: 0 }}>
-          Convert to expense
+          {t("shopping.convert")}
         </h2>
-        <p className="sub">Turn this shopping trip into a shared cost.</p>
+        <p className="sub">{t("shopping.convertSub")}</p>
         <label className="field">
-          <span>Amount ({currency})</span>
+          <span>{t("common.amount", { currency })}</span>
           <input required inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} />
         </label>
         <label className="field">
-          <span>Paid by</span>
+          <span>{t("common.paidBy")}</span>
           <select value={paidBy} onChange={(event) => setPaidBy(event.target.value)}>
             {members.map((member) => (
               <option key={member.id} value={member.id}>
@@ -183,7 +196,7 @@ export function ShoppingPage() {
           </select>
         </label>
         <div className="field">
-          <span>Split between</span>
+          <span>{t("shopping.split")}</span>
           <div className="members">
             {members.map((member) => (
               <label key={member.id}>
@@ -198,10 +211,10 @@ export function ShoppingPage() {
           </div>
         </div>
         <button className="primary" type="submit">
-          Record as expense
+          {t("shopping.record")}
         </button>
         <Link className="dash-more" to="/finances">
-          Open finances
+          {t("shopping.openFinances")}
         </Link>
       </form>
     </section>

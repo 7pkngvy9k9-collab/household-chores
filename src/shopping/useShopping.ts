@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { reportError } from "../lib/errors";
 import { useRealtimeTable } from "../lib/realtime";
+import { resolveCategory } from "./categories";
 import {
   addShoppingItem,
   convertListToExpense,
@@ -71,7 +72,7 @@ export function useShopping(householdId: string | null, userId: string | null) {
       if (!listId) return;
       setError("");
       try {
-        const created = await addShoppingItem(listId, name, quantity, unit);
+        const created = await addShoppingItem(listId, name, quantity, unit, resolveCategory(name));
         setItems((current) => [...current, created]);
       } catch (cause) {
         setError(reportError(cause, "The item could not be added. Please try again."));

@@ -1,11 +1,14 @@
 import { useState, type FormEvent } from "react";
 
+import { LanguageToggle } from "../components/LanguageToggle";
 import { ErrorMessage, SuccessMessage } from "../components/Feedback";
+import { useI18n } from "../i18n/LocaleProvider";
 import { reportError } from "../lib/errors";
 import { supabase } from "../lib/supabase";
 import { useHousehold } from "./HouseholdProvider";
 
 export function SettingsPage() {
+  const { t } = useI18n();
   const { household, currentRole, reload } = useHousehold();
   const [name, setName] = useState(household?.name ?? "");
   const [currency, setCurrency] = useState(household?.currency ?? "EUR");
@@ -35,13 +38,13 @@ export function SettingsPage() {
       .eq("id", householdId);
 
     if (updateError) {
-      setError(reportError(updateError, "Household settings could not be saved. Please try again."));
+      setError(reportError(updateError, t("settings.errorSave")));
       setBusy(false);
       return;
     }
 
     await reload();
-    setMessage("Settings saved.");
+    setMessage(t("settings.saved"));
     setBusy(false);
   }
 
@@ -50,7 +53,7 @@ export function SettingsPage() {
       <header className="page-head">
         <div>
           <p className="eyebrow">{household.name}</p>
-          <h1 className="brand">Settings</h1>
+          <h1 className="brand">{t("settings.title")}</h1>
         </div>
       </header>
 
@@ -59,29 +62,31 @@ export function SettingsPage() {
 
       <form className="card grid" onSubmit={(event) => void save(event)}>
         <label className="field">
-          <span>Household name</span>
+          <span>{t("settings.language")}</span>
+          <LanguageToggle />
+        </label>
+        <label className="field">
+          <span>{t("settings.householdName")}</span>
           <input required value={name} onChange={(event) => setName(event.target.value)} disabled={!canEdit} />
         </label>
         <label className="field">
-          <span>Currency</span>
+          <span>{t("settings.currency")}</span>
           <input required value={currency} onChange={(event) => setCurrency(event.target.value)} disabled={!canEdit} />
         </label>
         <label className="field">
-          <span>Time zone</span>
+          <span>{t("settings.timezone")}</span>
           <input required value={timezone} onChange={(event) => setTimezone(event.target.value)} disabled={!canEdit} />
         </label>
         {canEdit ? (
           <button className="primary" type="submit" disabled={busy}>
-            Save
+            {t("common.save")}
           </button>
         ) : (
-          <p className="empty">Only owners and admins can change household settings.</p>
+          <p className="empty">{t("settings.readOnly")}</p>
         )}
       </form>
 
-      <p className="sub">
-        Invite code: <strong>{inviteCode}</strong>
-      </p>
+      <p className="sub">{t("settings.invite", { code: inviteCode })}</p>
     </section>
   );
 }

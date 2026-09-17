@@ -36,7 +36,7 @@ Type: **Plus Jakarta Sans**, then system-ui. Page titles are bold. Section label
 - **Buttons:** pill (full radius), not 4px Google Search.
 - **Nav:** four-tab bar; sage only on the active item.
 - **Finances:** “You owe” / “You are owed” tiles, then balances, settle, add expense.
-- **Shopping:** list chips, To buy / Bought, optional convert to expense (opt-in, not automatic).
+- **Shopping:** list chips, To buy / Bought, aisle groups with 16px line icons in the header and row, optional convert to expense (opt-in, not automatic).
 - **Pinboard:** stacked notice cards with pin/remove.
 
 Chrome is utility (cluster 2). Features can stay WG (rotation, board). No leaderboards as home.

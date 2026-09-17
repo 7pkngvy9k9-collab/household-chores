@@ -16,11 +16,13 @@ import { CalendarPage } from "./calendar/CalendarPage";
 import { NoticeboardPage } from "./noticeboard/NoticeboardPage";
 import { PollsPage } from "./polls/PollsPage";
 import { ShoppingPage } from "./shopping/ShoppingPage";
+import { useI18n } from "./i18n/LocaleProvider";
 
 export function App() {
   const { user, loading } = useAuth();
+  const { t } = useI18n();
 
-  if (loading) return <p className="empty boot">Loading…</p>;
+  if (loading) return <p className="empty boot">{t("common.loading")}</p>;
 
   if (!user) {
     return (
@@ -40,13 +42,14 @@ export function App() {
 
 function SignedInRoutes() {
   const { loading, error, household } = useHousehold();
+  const { t } = useI18n();
 
-  if (loading) return <p className="empty boot">Loading…</p>;
+  if (loading) return <p className="empty boot">{t("common.loading")}</p>;
 
   if (error && !household) {
     return (
       <section className="setup card">
-        <h1>Something went wrong</h1>
+        <h1>{t("app.errorTitle")}</h1>
         <ErrorMessage message={error} />
       </section>
     );

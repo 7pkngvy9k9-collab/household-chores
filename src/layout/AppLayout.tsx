@@ -4,9 +4,11 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { RenderErrorBoundary } from "../components/Feedback";
 import { Icon } from "../components/Icons";
+import { LanguageToggle } from "../components/LanguageToggle";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { NotificationBell } from "../notifications/NotificationBell";
 import { useHousehold } from "../household/HouseholdProvider";
+import { useI18n } from "../i18n/LocaleProvider";
 import { HOUSEHOLD_NAV, PRIMARY_NAV, type NavItem } from "../nav/items";
 
 function navClassName({ isActive }: { isActive: boolean }): string {
@@ -14,12 +16,13 @@ function navClassName({ isActive }: { isActive: boolean }): string {
 }
 
 function NavList({ items }: { items: NavItem[] }) {
+  const { t } = useI18n();
   return (
-    <nav className="side-nav" aria-label="Household">
+    <nav className="side-nav" aria-label={t("common.household")}>
       {items.map((item) => (
         <NavLink key={item.to} to={item.to} end={item.end} className={navClassName}>
           <Icon name={item.icon} />
-          {item.label}
+          {t(item.labelKey)}
         </NavLink>
       ))}
     </nav>
@@ -29,6 +32,7 @@ function NavList({ items }: { items: NavItem[] }) {
 export function AppLayout() {
   const { signOut } = useAuth();
   const { household } = useHousehold();
+  const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (!household) return null;
@@ -43,23 +47,24 @@ export function AppLayout() {
             {mark}
           </div>
           <div>
-            <p className="sidebar-kicker">Household</p>
+            <p className="sidebar-kicker">{t("common.household")}</p>
             <h1 className="brand">{household.name}</h1>
           </div>
         </div>
         <p className="invite-chip">
-          Invite <strong>{household.inviteCode}</strong>
+          {t("common.invite")} <strong>{household.inviteCode}</strong>
         </p>
         <NavList items={PRIMARY_NAV} />
-        <p className="nav-label">Household</p>
+        <p className="nav-label">{t("common.household")}</p>
         <NavList items={HOUSEHOLD_NAV} />
         <div className="sidebar-foot">
           <RenderErrorBoundary>
             <NotificationBell />
           </RenderErrorBoundary>
+          <LanguageToggle />
           <ThemeToggle />
           <button className="ghost" type="button" onClick={() => void signOut()}>
-            Sign out
+            {t("common.signOut")}
           </button>
         </div>
       </aside>
@@ -80,19 +85,19 @@ export function AppLayout() {
         <Outlet />
       </main>
 
-      <nav className="bottom-nav" aria-label="Primary">
+      <nav className="bottom-nav" aria-label={t("nav.primary")}>
         {PRIMARY_NAV.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.end} className={navClassName}>
             <Icon name={item.icon} />
-            {item.label}
+            {t(item.labelKey)}
           </NavLink>
         ))}
       </nav>
 
       {menuOpen ? (
-        <div className="more-sheet" role="dialog" aria-label="Household">
+        <div className="more-sheet" role="dialog" aria-label={t("common.household")}>
           <button className="more-backdrop" type="button" onClick={() => setMenuOpen(false)}>
-            <span className="sr-only">Close menu</span>
+            <span className="sr-only">{t("layout.closeMenu")}</span>
           </button>
           <div className="card more-panel">
             <div className="composer-head">
@@ -100,19 +105,20 @@ export function AppLayout() {
                 {household.name}
               </h2>
               <button className="ghost" type="button" onClick={() => setMenuOpen(false)}>
-                Close
+                {t("common.close")}
               </button>
             </div>
             <p className="invite-chip">
-              Invite <strong>{household.inviteCode}</strong>
+              {t("common.invite")} <strong>{household.inviteCode}</strong>
             </p>
             <nav className="more-nav" onClick={() => setMenuOpen(false)}>
               <NavList items={HOUSEHOLD_NAV} />
             </nav>
             <div className="sidebar-foot">
+              <LanguageToggle />
               <ThemeToggle />
               <button className="ghost" type="button" onClick={() => void signOut()}>
-                Sign out
+                {t("common.signOut")}
               </button>
             </div>
           </div>

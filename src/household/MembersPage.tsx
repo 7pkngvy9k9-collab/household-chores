@@ -2,12 +2,14 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ErrorMessage, SuccessMessage } from "../components/Feedback";
+import { useI18n } from "../i18n/LocaleProvider";
 import { reportError } from "../lib/errors";
 import { supabase } from "../lib/supabase";
 import { MEMBER_ROLES, useHousehold, type MemberRole } from "./HouseholdProvider";
 
 export function MembersPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { household, members, currentMemberId, currentRole, reload } = useHousehold();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,12 +33,12 @@ export function MembersPage() {
       p_name: name.trim(),
     });
     if (rpcError) {
-      setError(reportError(rpcError, "The person could not be added. Please try again."));
+      setError(reportError(rpcError, t("members.errorAdd")));
       setBusy(false);
       return;
     }
     setName("");
-    setMessage("Seat added. Share the invite code so they can join.");
+    setMessage(t("members.added"));
     await reload();
     setBusy(false);
   }
@@ -49,7 +51,7 @@ export function MembersPage() {
       p_role: role,
     });
     if (rpcError) {
-      setError(reportError(rpcError, "The role could not be changed. Please try again."));
+      setError(reportError(rpcError, t("members.errorRole")));
     } else {
       await reload();
     }
@@ -57,14 +59,14 @@ export function MembersPage() {
   }
 
   async function removeMember(memberId: string, memberName: string) {
-    if (!window.confirm(`Remove ${memberName} from the household?`)) return;
+    if (!window.confirm(t("members.removeConfirm", { name: memberName }))) return;
     setBusy(true);
     setError("");
     const { error: rpcError } = await supabase.rpc("remove_household_member", {
       p_member_id: memberId,
     });
     if (rpcError) {
-      setError(reportError(rpcError, "The member could not be removed. Please try again."));
+      setError(reportError(rpcError, t("members.errorRemove")));
     } else {
       await reload();
     }
@@ -72,12 +74,12 @@ export function MembersPage() {
   }
 
   async function leaveHousehold() {
-    if (!window.confirm("Leave this household? You can rejoin later with the invite code.")) return;
+    if (!window.confirm(t("members.leaveConfirm"))) return;
     setBusy(true);
     setError("");
     const { error: rpcError } = await supabase.rpc("leave_household");
     if (rpcError) {
-      setError(reportError(rpcError, "You could not leave the household. Please try again."));
+      setError(reportError(rpcError, t("members.errorLeave")));
       setBusy(false);
       return;
     }
@@ -88,9 +90,9 @@ export function MembersPage() {
   async function copyInvite() {
     try {
       await navigator.clipboard.writeText(inviteCode);
-      setMessage("Invite code copied.");
+      setMessage(t("members.copied"));
     } catch (cause) {
-      setError(reportError(cause, "The invite code could not be copied."));
+      setError(reportError(cause, t("members.errorCopy")));
     }
   }
 
@@ -99,46 +101,54 @@ export function MembersPage() {
       <header className="page-head">
         <div>
           <p className="eyebrow">{household.name}</p>
-          <h1 className="brand">Members</h1>
-          <p className="sub">
-            Invite code: <strong>{inviteCode}</strong>
-          </p>
+          <h1 className="brand">{t("members.title")}</h1>
+          <p className="sub">{t("members.inviteCode", { code: inviteCode })}</p>
         </div>
-        <button className="ghost" type="button" onClick={() => void copyInvite()}>
-          Copy invite code
-        </button>
       </header>
+
+      <button className="ghost stretch" type="button" onClick={() => void copyInvite()}>
+        {t("members.copy")}
+      </button>
 
       <ErrorMessage message={error} />
       <SuccessMessage message={message} />
 
       {members.length === 0 ? (
-        <p className="empty">No members yet.</p>
+        <p className="empty">{t("members.empty")}</p>
       ) : (
         members.map((member) => (
           <article className="card member-card" key={member.id}>
-            <div>
-              <h3>{member.name}</h3>
-              <p className="sub">
-                {member.userId ? "Joined" : "Unclaimed seat"}
-                {member.id === currentMemberId ? " · you" : ""}
-              </p>
+            <div className="member-identity">
+              <span className="who-mark" aria-hidden="true">
+                {member.name.trim().slice(0, 1).toUpperCase() || "?"}
+              </span>
+              <div>
+                <h3>{member.name}</h3>
+                <p className="sub">
+                  {member.userId ? t("members.joined") : t("members.unclaimed")}
+                  {member.id === currentMemberId ? t("members.youSuffix") : ""}
+                </p>
+              </div>
             </div>
             <div className="member-actions">
               {canChangeRoles && member.id !== currentMemberId ? (
-                <select
-                  value={member.role}
-                  disabled={busy}
-                  onChange={(event) => void changeRole(member.id, event.target.value as MemberRole)}
-                >
+                <div className="role-chips" role="group" aria-label={t("members.role")}>
                   {MEMBER_ROLES.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
+                    <button
+                      key={role}
+                      type="button"
+                      className={`chip${member.role === role ? " active" : ""}`}
+                      disabled={busy}
+                      onClick={() => {
+                        if (role !== member.role) void changeRole(member.id, role);
+                      }}
+                    >
+                      {t(`members.roles.${role}`)}
+                    </button>
                   ))}
-                </select>
+                </div>
               ) : (
-                <span className="pill">{member.role}</span>
+                <span className="chip active">{t(`members.roles.${member.role}`)}</span>
               )}
               {canManage && member.id !== currentMemberId ? (
                 <button
@@ -147,7 +157,7 @@ export function MembersPage() {
                   disabled={busy}
                   onClick={() => void removeMember(member.id, member.name)}
                 >
-                  Remove
+                  {t("common.remove")}
                 </button>
               ) : null}
             </div>
@@ -157,10 +167,10 @@ export function MembersPage() {
 
       <form className="card grid" onSubmit={(event) => void addMember(event)}>
         <h2 className="section-title" style={{ margin: 0 }}>
-          Add a person
+          {t("members.addPerson")}
         </h2>
         <label className="field">
-          <span>Name</span>
+          <span>{t("common.name")}</span>
           <input
             required
             placeholder="Lisa"
@@ -169,7 +179,7 @@ export function MembersPage() {
           />
         </label>
         <button className="primary" type="submit" disabled={busy}>
-          Add seat
+          {t("members.addSeat")}
         </button>
       </form>
 
@@ -185,25 +195,25 @@ export function MembersPage() {
               p_days: 7,
             });
             if (inviteError) {
-              setError(reportError(inviteError, "The invite could not be created."));
+              setError(reportError(inviteError, t("members.errorInvite")));
             } else {
-              setMessage(`Time-limited code: ${data}. Valid 7 days.`);
+              setMessage(t("members.timedResult", { code: String(data) }));
             }
             setBusy(false);
           })();
         }}
       >
         <h2 className="section-title" style={{ margin: 0 }}>
-          Time-limited invite
+          {t("members.timed")}
         </h2>
-        <p className="sub">Creates a second code that expires in 7 days. The permanent household code still works.</p>
+        <p className="sub">{t("members.timedSub")}</p>
         <button className="ghost" type="submit" disabled={busy}>
-          Create 7-day code
+          {t("members.createCode")}
         </button>
       </form>
 
-      <button className="ghost" type="button" disabled={busy} onClick={() => void leaveHousehold()}>
-        Leave household
+      <button className="ghost stretch" type="button" disabled={busy} onClick={() => void leaveHousehold()}>
+        {t("members.leave")}
       </button>
     </section>
   );
