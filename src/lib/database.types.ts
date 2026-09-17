@@ -10,173 +10,105 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      chores: {
-        Row: {
-          created_at: string
-          done: boolean
-          due_date: string | null
-          holder_ids: string[]
-          holder_index: number
-          household_id: string
-          id: string
-          kind: string
-          last_done_at: string | null
-          last_done_by: string | null
-          repeat: string
-          rotate: boolean
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          done?: boolean
-          due_date?: string | null
-          holder_ids?: string[]
-          holder_index?: number
-          household_id: string
-          id?: string
-          kind: string
-          last_done_at?: string | null
-          last_done_by?: string | null
-          repeat?: string
-          rotate?: boolean
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          done?: boolean
-          due_date?: string | null
-          holder_ids?: string[]
-          holder_index?: number
-          household_id?: string
-          id?: string
-          kind?: string
-          last_done_at?: string | null
-          last_done_by?: string | null
-          repeat?: string
-          rotate?: boolean
-          title?: string
-          updated_at?: string
-        }
+      expense_splits: {
+        Row: { amount: number; expense_id: string; id: string; percentage: number | null; share: number | null; user_id: string }
+        Insert: { amount: number; expense_id: string; id?: string; percentage?: number | null; share?: number | null; user_id: string }
+        Update: { amount?: number; expense_id?: string; id?: string; percentage?: number | null; share?: number | null; user_id?: string }
         Relationships: [
-          {
-            foreignKeyName: "chores_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chores_last_done_by_fkey"
-            columns: ["last_done_by"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["id"]
-          },
+          { foreignKeyName: "expense_splits_expense_id_fkey"; columns: ["expense_id"]; isOneToOne: false; referencedRelation: "expenses"; referencedColumns: ["id"] },
+          { foreignKeyName: "expense_splits_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "household_members"; referencedColumns: ["id"] },
+        ]
+      }
+      expenses: {
+        Row: { amount: number; created_at: string; created_by: string | null; currency: string; description: string | null; expense_date: string; household_id: string; id: string; paid_by: string; title: string; updated_at: string }
+        Insert: { amount: number; created_at?: string; created_by?: string | null; currency?: string; description?: string | null; expense_date?: string; household_id: string; id?: string; paid_by: string; title: string; updated_at?: string }
+        Update: { amount?: number; created_at?: string; created_by?: string | null; currency?: string; description?: string | null; expense_date?: string; household_id?: string; id?: string; paid_by?: string; title?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "expenses_household_id_fkey"; columns: ["household_id"]; isOneToOne: false; referencedRelation: "households"; referencedColumns: ["id"] },
+          { foreignKeyName: "expenses_paid_by_fkey"; columns: ["paid_by"]; isOneToOne: false; referencedRelation: "household_members"; referencedColumns: ["id"] },
+        ]
+      }
+      household_members: {
+        Row: { created_at: string; household_id: string; id: string; name: string; role: string; user_id: string | null }
+        Insert: { created_at?: string; household_id: string; id?: string; name: string; role?: string; user_id?: string | null }
+        Update: { created_at?: string; household_id?: string; id?: string; name?: string; role?: string; user_id?: string | null }
+        Relationships: [
+          { foreignKeyName: "members_household_id_fkey"; columns: ["household_id"]; isOneToOne: false; referencedRelation: "households"; referencedColumns: ["id"] },
         ]
       }
       households: {
-        Row: {
-          created_at: string
-          id: string
-          invite_code: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          invite_code: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          invite_code?: string
-          name?: string
-        }
+        Row: { created_at: string; currency: string; id: string; invite_code: string; name: string; timezone: string }
+        Insert: { created_at?: string; currency?: string; id?: string; invite_code: string; name: string; timezone?: string }
+        Update: { created_at?: string; currency?: string; id?: string; invite_code?: string; name?: string; timezone?: string }
         Relationships: []
       }
-      members: {
-        Row: {
-          created_at: string
-          household_id: string
-          id: string
-          name: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          household_id: string
-          id?: string
-          name: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          household_id?: string
-          id?: string
-          name?: string
-          user_id?: string | null
-        }
+      settlements: {
+        Row: { amount: number; created_at: string; from_user: string; household_id: string; id: string; settled_at: string | null; status: string; to_user: string }
+        Insert: { amount: number; created_at?: string; from_user: string; household_id: string; id?: string; settled_at?: string | null; status?: string; to_user: string }
+        Update: { amount?: number; created_at?: string; from_user?: string; household_id?: string; id?: string; settled_at?: string | null; status?: string; to_user?: string }
         Relationships: [
-          {
-            foreignKeyName: "members_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
+          { foreignKeyName: "settlements_from_user_fkey"; columns: ["from_user"]; isOneToOne: false; referencedRelation: "household_members"; referencedColumns: ["id"] },
+          { foreignKeyName: "settlements_household_id_fkey"; columns: ["household_id"]; isOneToOne: false; referencedRelation: "households"; referencedColumns: ["id"] },
+          { foreignKeyName: "settlements_to_user_fkey"; columns: ["to_user"]; isOneToOne: false; referencedRelation: "household_members"; referencedColumns: ["id"] },
+        ]
+      }
+      shopping_items: {
+        Row: { category: string | null; completed_at: string | null; completed_by: string | null; created_at: string; created_by: string | null; id: string; image_url: string | null; name: string; note: string | null; position: number; quantity: number | null; shopping_list_id: string; unit: string | null; updated_at: string }
+        Insert: { category?: string | null; completed_at?: string | null; completed_by?: string | null; created_at?: string; created_by?: string | null; id?: string; image_url?: string | null; name: string; note?: string | null; position?: number; quantity?: number | null; shopping_list_id: string; unit?: string | null; updated_at?: string }
+        Update: { category?: string | null; completed_at?: string | null; completed_by?: string | null; created_at?: string; created_by?: string | null; id?: string; image_url?: string | null; name?: string; note?: string | null; position?: number; quantity?: number | null; shopping_list_id?: string; unit?: string | null; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "shopping_items_shopping_list_id_fkey"; columns: ["shopping_list_id"]; isOneToOne: false; referencedRelation: "shopping_lists"; referencedColumns: ["id"] },
+        ]
+      }
+      shopping_lists: {
+        Row: { created_at: string; created_by: string | null; household_id: string; id: string; name: string }
+        Insert: { created_at?: string; created_by?: string | null; household_id: string; id?: string; name: string }
+        Update: { created_at?: string; created_by?: string | null; household_id?: string; id?: string; name?: string }
+        Relationships: [
+          { foreignKeyName: "shopping_lists_household_id_fkey"; columns: ["household_id"]; isOneToOne: false; referencedRelation: "households"; referencedColumns: ["id"] },
+        ]
+      }
+      task_completions: {
+        Row: { completed_at: string; id: string; points_earned: number; task_id: string; user_id: string }
+        Insert: { completed_at?: string; id?: string; points_earned?: number; task_id: string; user_id: string }
+        Update: { completed_at?: string; id?: string; points_earned?: number; task_id?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "task_completions_task_id_fkey"; columns: ["task_id"]; isOneToOne: false; referencedRelation: "tasks"; referencedColumns: ["id"] },
+        ]
+      }
+      tasks: {
+        Row: { created_at: string; description: string | null; done: boolean; due_date: string | null; holder_ids: string[]; holder_index: number; household_id: string; id: string; kind: string; last_done_at: string | null; last_done_by: string | null; points: number; priority: string; repeat: string; repeat_interval: number; rotate: boolean; title: string; updated_at: string }
+        Insert: { created_at?: string; description?: string | null; done?: boolean; due_date?: string | null; holder_ids?: string[]; holder_index?: number; household_id: string; id?: string; kind: string; last_done_at?: string | null; last_done_by?: string | null; points?: number; priority?: string; repeat?: string; repeat_interval?: number; rotate?: boolean; title: string; updated_at?: string }
+        Update: { created_at?: string; description?: string | null; done?: boolean; due_date?: string | null; holder_ids?: string[]; holder_index?: number; household_id?: string; id?: string; kind?: string; last_done_at?: string | null; last_done_by?: string | null; points?: number; priority?: string; repeat?: string; repeat_interval?: number; rotate?: boolean; title?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "chores_household_id_fkey"; columns: ["household_id"]; isOneToOne: false; referencedRelation: "households"; referencedColumns: ["id"] },
+          { foreignKeyName: "chores_last_done_by_fkey"; columns: ["last_done_by"]; isOneToOne: false; referencedRelation: "household_members"; referencedColumns: ["id"] },
         ]
       }
     }
-    Views: {
-      [_ in never]: never
-    }
+    Views: { [_ in never]: never }
     Functions: {
-      create_household: {
-        Args: { p_member_names: string[]; p_name: string }
-        Returns: {
-          household_id: string
-          invite_code: string
-          member_id: string
-        }[]
-      }
-      current_member_household_ids: { Args: never; Returns: string[] }
-      join_household: {
-        Args: { p_code: string; p_member_id: string }
-        Returns: string
-      }
-      list_members_by_invite: {
-        Args: { p_code: string }
-        Returns: {
-          claimed: boolean
-          id: string
-          name: string
-        }[]
-      }
-      lookup_household_by_invite: {
-        Args: { p_code: string }
-        Returns: {
-          id: string
-          invite_code: string
-          name: string
-        }[]
-      }
+      add_household_member: { Args: { p_household_id: string; p_name: string }; Returns: string }
+      calculate_balances: { Args: { p_household_id: string }; Returns: { balance: number; member_id: string; member_name: string }[] }
+      change_member_role: { Args: { p_member_id: string; p_role: string }; Returns: undefined }
+      complete_task: { Args: { p_task_id: string }; Returns: Database["public"]["Tables"]["tasks"]["Row"] }
+      convert_shopping_to_expense: { Args: { p_amount: number; p_list_id: string; p_paid_by: string; p_participant_ids: string[]; p_title: string }; Returns: string }
+      create_expense: { Args: { p_amount: number; p_description?: string; p_expense_date?: string; p_household_id: string; p_paid_by: string; p_participant_ids: string[]; p_title: string }; Returns: string }
+      create_household: { Args: { p_member_names: string[]; p_name: string }; Returns: { household_id: string; invite_code: string; member_id: string }[] }
+      is_household_member: { Args: { p_household_id: string; p_user_id: string }; Returns: boolean }
+      join_household: { Args: { p_code: string; p_member_id: string }; Returns: string }
+      leave_household: { Args: never; Returns: undefined }
+      list_members_by_invite: { Args: { p_code: string }; Returns: { claimed: boolean; id: string; name: string }[] }
+      lookup_household_by_invite: { Args: { p_code: string }; Returns: { id: string; invite_code: string; name: string }[] }
+      remove_household_member: { Args: { p_member_id: string }; Returns: undefined }
     }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    Enums: { [_ in never]: never }
+    CompositeTypes: { [_ in never]: never }
   }
 }
 

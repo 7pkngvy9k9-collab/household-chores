@@ -2,10 +2,18 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { useAuth } from "./auth/AuthProvider";
 import { SignInPage } from "./auth/SignInPage";
-import { ChoresPage } from "./chores/ChoresPage";
+import { ChoresPage } from "./tasks/ChoresPage";
+import { ChoresProvider } from "./tasks/ChoresProvider";
 import { ErrorMessage } from "./components/Feedback";
+import { DashboardPage } from "./dashboard/DashboardPage";
+import { FinancesPage } from "./finance/FinancesPage";
 import { HouseholdProvider, useHousehold } from "./household/HouseholdProvider";
+import { MembersPage } from "./household/MembersPage";
 import { OnboardingPage } from "./household/OnboardingPage";
+import { SettingsPage } from "./household/SettingsPage";
+import { AppLayout } from "./layout/AppLayout";
+import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ShoppingPage } from "./shopping/ShoppingPage";
 
 export function App() {
   const { user, loading } = useAuth();
@@ -48,7 +56,42 @@ function SignedInRoutes() {
         path="/setup"
         element={household ? <Navigate to="/" replace /> : <OnboardingPage />}
       />
-      <Route path="/" element={household ? <ChoresPage /> : <Navigate to="/setup" replace />} />
+      <Route
+        element={
+          household ? (
+            <ChoresProvider>
+              <AppLayout />
+            </ChoresProvider>
+          ) : (
+            <Navigate to="/setup" replace />
+          )
+        }
+      >
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/tasks" element={<ChoresPage />} />
+        <Route path="/shopping" element={<ShoppingPage />} />
+        <Route path="/finances" element={<FinancesPage />} />
+        <Route
+          path="/calendar"
+          element={
+            <PlaceholderPage
+              title="Calendar"
+              body="No household events yet. Meetings, visitors, and garbage day will show up here."
+            />
+          }
+        />
+        <Route
+          path="/noticeboard"
+          element={
+            <PlaceholderPage
+              title="Noticeboard"
+              body="No posts yet. Pin notes the household should see."
+            />
+          }
+        />
+        <Route path="/members" element={<MembersPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
