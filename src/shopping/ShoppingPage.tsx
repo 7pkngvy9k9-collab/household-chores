@@ -8,13 +8,14 @@ import { Icon } from "../components/Icons";
 import { useHousehold } from "../household/HouseholdProvider";
 import { useI18n } from "../i18n/LocaleProvider";
 import { groupByCategory } from "./categories";
+import { displayItemName } from "./glossary";
 import { useShopping } from "./useShopping";
 
 export function ShoppingPage() {
   const { user } = useAuth();
   const { household, members, currentMemberId } = useHousehold();
   const shopping = useShopping(household?.id ?? null, user?.id ?? null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -138,22 +139,25 @@ export function ShoppingPage() {
                 <Icon name={group.icon} className="icon shop-cat-icon" />
                 {t(`shopping.cat.${group.id}`)}
               </p>
-              {group.items.map((item) => (
-                <ListRow
-                  key={item.id}
-                  title={item.name}
-                  glyph={group.icon}
-                  meta={
-                    [item.quantity ? `${item.quantity}${item.unit ? ` ${item.unit}` : ""}` : null, item.note]
-                      .filter(Boolean)
-                      .join(" · ") || undefined
-                  }
-                  checked={false}
-                  completeLabel={t("shopping.markBought", { name: item.name })}
-                  onToggle={() => void shopping.toggle(item)}
-                  onRemove={() => void shopping.remove(item.id)}
-                />
-              ))}
+              {group.items.map((item) => {
+                const shown = displayItemName(item.name, locale);
+                return (
+                  <ListRow
+                    key={item.id}
+                    title={shown}
+                    glyph={group.icon}
+                    meta={
+                      [item.quantity ? `${item.quantity}${item.unit ? ` ${item.unit}` : ""}` : null, item.note]
+                        .filter(Boolean)
+                        .join(" · ") || undefined
+                    }
+                    checked={false}
+                    completeLabel={t("shopping.markBought", { name: shown })}
+                    onToggle={() => void shopping.toggle(item)}
+                    onRemove={() => void shopping.remove(item.id)}
+                  />
+                );
+              })}
             </div>
           ))}
         </div>
@@ -163,15 +167,18 @@ export function ShoppingPage() {
         <>
           <h2 className="section-title">{t("shopping.bought")}</h2>
           <div className="checklist">
-            {boughtItems.map((item) => (
-              <ListRow
-                key={item.id}
-                title={item.name}
-                checked
-                completeLabel={t("shopping.putBack", { name: item.name })}
-                onToggle={() => void shopping.toggle(item)}
-              />
-            ))}
+            {boughtItems.map((item) => {
+              const shown = displayItemName(item.name, locale);
+              return (
+                <ListRow
+                  key={item.id}
+                  title={shown}
+                  checked
+                  completeLabel={t("shopping.putBack", { name: shown })}
+                  onToggle={() => void shopping.toggle(item)}
+                />
+              );
+            })}
           </div>
         </>
       ) : null}

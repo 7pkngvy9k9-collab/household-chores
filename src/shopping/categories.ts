@@ -1,3 +1,5 @@
+import { CATEGORY_ALIAS_MATCHERS, fold } from "./glossary";
+
 export const SHOP_CATEGORIES = [
   "fridge",
   "produce",
@@ -42,105 +44,6 @@ export const SHOP_CATEGORY_ICON: Record<ShopCategory, string> = {
   other: "cat-basket",
 };
 
-const KEYWORDS: [ShopCategory, string[]][] = [
-  [
-    "fridge",
-    [
-      "milk",
-      "milch",
-      "yogurt",
-      "joghurt",
-      "butter",
-      "cheese",
-      "kaese",
-      "käse",
-      "cream",
-      "sahne",
-      "quark",
-      "eier",
-      "egg",
-      "eggs",
-    ],
-  ],
-  [
-    "produce",
-    [
-      "tomato",
-      "tomate",
-      "banana",
-      "banane",
-      "apple",
-      "apfel",
-      "salad",
-      "salat",
-      "lettuce",
-      "onion",
-      "zwiebel",
-      "garlic",
-      "knoblauch",
-      "pepper",
-      "paprika",
-      "cucumber",
-      "gurke",
-      "carrot",
-      "moehre",
-      "möhre",
-      "fruit",
-      "obst",
-      "veg",
-      "gemuese",
-      "gemüse",
-    ],
-  ],
-  ["bakery", ["bread", "brot", "bun", "broetchen", "brötchen", "croissant", "toast"]],
-  [
-    "meat",
-    ["chicken", "huhn", "haehnchen", "hähnchen", "beef", "rind", "pork", "schwein", "fish", "fisch", "salmon", "lachs", "mince", "hack"],
-  ],
-  [
-    "pantry",
-    ["rice", "reis", "pasta", "nudeln", "oil", "oel", "öl", "flour", "mehl", "sugar", "zucker", "salt", "salz"],
-  ],
-  ["frozen", ["ice cream", "eis", "frozen", "tiefkuehl", "tiefkühl", "pizza"]],
-  [
-    "beverages",
-    ["water", "wasser", "juice", "saft", "cola", "beer", "bier", "wine", "wein", "coffee", "kaffee", "tea", "tee", "sparkling"],
-  ],
-  [
-    "household",
-    [
-      "trash",
-      "muell",
-      "müll",
-      "beutel",
-      "dishwasher",
-      "spuel",
-      "spül",
-      "detergent",
-      "soap",
-      "seife",
-      "paper",
-      "toilet",
-      "klot",
-      "sponge",
-      "schwamm",
-    ],
-  ],
-  ["care", ["shampoo", "toothpaste", "zahnpasta", "toothbrush", "zahnbuerste", "dusch", "lotion"]],
-  ["pets", ["cat", "katze", "dog", "hund", "kibble", "futter", "litter", "streu"]],
-];
-
-function fold(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "");
-}
-
-const MATCHERS = KEYWORDS.flatMap(([category, words]) =>
-  words.map((word) => ({ category, word: fold(word) })),
-).sort((a, b) => b.word.length - a.word.length);
-
 export function isShopCategory(value: string | null | undefined): value is ShopCategory {
   return SHOP_CATEGORIES.includes(value as ShopCategory);
 }
@@ -157,7 +60,7 @@ function hasTerm(haystack: string, term: string): boolean {
 export function resolveCategory(name: string, stored?: string | null): ShopCategory {
   if (isShopCategory(stored) && stored !== "other") return stored;
   const haystack = fold(name);
-  const hit = MATCHERS.find(({ word }) => hasTerm(haystack, word));
+  const hit = CATEGORY_ALIAS_MATCHERS.find(({ word }) => hasTerm(haystack, word));
   return hit?.category ?? "other";
 }
 

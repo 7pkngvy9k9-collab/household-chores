@@ -1310,6 +1310,175 @@ html.theme-dark .field input[type="checkbox"]:checked {
   gap: 8px;
 }
 
+.cal-week-head {
+  margin-bottom: 14px;
+}
+
+.cal-week-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.cal-jump {
+  border-color: var(--sage);
+  color: var(--sage-deep);
+  padding: 6px 12px;
+}
+
+.cal-range {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-range-label {
+  text-align: center;
+}
+
+.cal-range-kicker {
+  margin: 0 0 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+
+.cal-range-dates {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.cal-range-label .sub {
+  margin: 4px 0 0;
+}
+
+.cal-arrow {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  justify-content: center;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.cal-views {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.cal-views .chip {
+  border: 0;
+  background: transparent;
+  width: 100%;
+}
+
+.cal-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.cal-day-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.cal-day-card.is-today {
+  border-color: var(--sage);
+  box-shadow: inset 0 0 0 1px var(--sage);
+}
+
+.cal-day-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.cal-today-badge {
+  background: var(--sage-soft);
+  color: var(--sage-deep);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cal-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.cal-chore {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.cal-chore-copy {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cal-chore-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.cal-chore-assignee {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.cal-chore.is-overdue .cal-chore-title,
+.cal-chore-flag {
+  color: var(--clay);
+}
+
+.cal-chore-flag {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cal-chore.is-done .cal-chore-title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.cal-chore .who-mark.is-mine {
+  background: var(--sage);
+  color: var(--on-primary);
+}
+
+.cal-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
 .cal-weekdays,
 .cal-grid {
   display: grid;
@@ -1370,6 +1539,17 @@ html.theme-dark .field input[type="checkbox"]:checked {
 .cal-event.is-away {
   background: var(--clay-soft);
   color: var(--banner-ink);
+}
+
+.cal-event.is-done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.cal-chip-row .cal-event {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 10px;
 }
 
 .notice-bell {
