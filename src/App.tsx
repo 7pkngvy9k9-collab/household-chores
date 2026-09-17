@@ -56,7 +56,7 @@ function SignedInRoutes() {
     <Routes>
       <Route
         path="/setup"
-        element={household ? <Navigate to="/" replace /> : <OnboardingPage />}
+        element={household ? <Navigate to="/tasks" replace /> : <OnboardingPage />}
       />
       <Route
         element={
@@ -69,7 +69,8 @@ function SignedInRoutes() {
           )
         }
       >
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<Navigate to="/tasks" replace />} />
+        <Route path="/overview" element={<DashboardPage />} />
         <Route path="/tasks" element={<ChoresPage />} />
         <Route path="/shopping" element={<ShoppingPage />} />
         <Route path="/finances" element={<FinancesPage />} />
@@ -79,7 +80,7 @@ function SignedInRoutes() {
         <Route path="/members" element={<MembersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/tasks" replace />} />
     </Routes>
   );
 }
